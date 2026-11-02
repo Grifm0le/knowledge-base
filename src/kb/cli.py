@@ -55,9 +55,11 @@ def _cmd_check(args: argparse.Namespace) -> int:
     engine, failed = _load(args.root)
     for doc_id in sorted(engine.index.doc_ids()):
         result = analyze(engine.get_document(doc_id))
-        print(f"{doc_id}: слов {result.words}, заголовков {result.headings}, "
-              f"кода {result.code_blocks}, ссылок {result.links}, "
-              f"чтение ~{result.reading_minutes} мин")
+        print(
+            f"{doc_id}: слов {result.words}, заголовков {result.headings}, "
+            f"кода {result.code_blocks}, ссылок {result.links}, "
+            f"чтение ~{result.reading_minutes} мин"
+        )
         for warning in result.warnings:
             print(f"  замечание: {warning}")
     print(f"Принято: {len(engine)}, отклонено: {failed}")

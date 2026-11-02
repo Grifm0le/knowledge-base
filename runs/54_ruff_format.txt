@@ -1,0 +1,105 @@
+$ ruff format --check src tests tools migrations
+unformatted: File would be reformatted
+  --> src\kb\cli.py:58:15
+   |
+57 |         result = analyze(engine.get_document(doc_id))
+   -         print(f"{doc_id}: слов {result.words}, заголовков {result.headings}, "
+   -               f"кода {result.code_blocks}, ссылок {result.links}, "
+   -               f"чтение ~{result.reading_minutes} мин")
+58 +         print(
+59 +             f"{doc_id}: слов {result.words}, заголовков {result.headings}, "
+60 +             f"кода {result.code_blocks}, ссылок {result.links}, "
+61 +             f"чтение ~{result.reading_minutes} мин"
+62 +         )
+63 |         for warning in result.warnings:
+   |
+
+unformatted: File would be reformatted
+   --> src\kb\parser.py:119:15
+    |
+118 |         "Разобран документ %r: заголовков %d, блоков текста %d, блоков кода %d, ссылок %d",
+    -         title, len(headings), len(blocks), len(code_blocks), len(links),
+119 +         title,
+120 +         len(headings),
+121 +         len(blocks),
+122 +         len(code_blocks),
+123 +         len(links),
+124 |     )
+    |
+
+unformatted: File would be reformatted
+   --> src\kb\search.py:123:20
+    |
+122 |     ) -> SearchResult:
+    -         matched = [
+    -             doc_id for doc_id in scores if query.filters.matches(self._documents[doc_id])
+    -         ]
+123 +         matched = [doc_id for doc_id in scores if query.filters.matches(self._documents[doc_id])]
+124 |         ordered = self._sort(matched, scores, query.sort)
+125 |         page = ordered[query.offset : query.offset + query.limit]
+126 |         logger.debug(
+127 |             "Запрос %r: термины %s, метод %s, найдено %d, после фильтров %d",
+    -             query.text, query_terms, query.scorer, len(scores), len(matched),
+128 +             query.text,
+129 +             query_terms,
+130 +             query.scorer,
+131 +             len(scores),
+132 +             len(matched),
+133 |         )
+    |
+
+unformatted: File would be reformatted
+   --> src\kb\storage\repository.py:148:40
+    |
+147 |         except IntegrityError as exc:
+    -             raise DuplicateSourceError(
+    -                 f"Документ из файла {draft.source_name!r} уже есть"
+    -             ) from exc
+148 +             raise DuplicateSourceError(f"Документ из файла {draft.source_name!r} уже есть") from exc
+149 |
+    |
+
+io: stream did not contain valid UTF-8
+--> tests\data\import_set\cp1251.md:1:1
+
+unformatted: File would be reformatted
+   --> tests\test_integration.py:92:22
+    |
+91  |         [
+    -             "search", str(SAMPLES), "--tag", "Git", "--category", "инструменты", "--author",
+    -             "балашов е. р.", "--from", "2026-01-01", "--to", "2026-12-31", "--sort", "created",
+92  +             "search",
+93  +             str(SAMPLES),
+94  +             "--tag",
+95  +             "Git",
+96  +             "--category",
+97  +             "инструменты",
+98  +             "--author",
+99  +             "балашов е. р.",
+100 +             "--from",
+101 +             "2026-01-01",
+102 +             "--to",
+103 +             "2026-12-31",
+104 +             "--sort",
+105 +             "created",
+106 |         ]
+    |
+
+unformatted: File would be reformatted
+  --> tests\test_textproc.py:61:1
+   |
+60 |     assert set(results) == {expected}
+   -
+   -
+   - def test_terms_and_tokenize_give_same_result():
+   -     text = "Быстрый поиск по базе и the searching ёлка 2026 user_name"
+   -     assert terms(text) == [token.term for token in tokenize(text)]
+61 +
+62 +
+63 + def test_terms_and_tokenize_give_same_result():
+64 +     text = "Быстрый поиск по базе и the searching ёлка 2026 user_name"
+65 +     assert terms(text) == [token.term for token in tokenize(text)]
+   |
+
+6 files would be reformatted, 49 files already formatted
+[exit 2]

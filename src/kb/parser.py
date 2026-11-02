@@ -116,7 +116,11 @@ def parse_document(raw: str, *, fallback_title: str | None = None) -> ParsedDocu
     )
     logger.debug(
         "Разобран документ %r: заголовков %d, блоков текста %d, блоков кода %d, ссылок %d",
-        title, len(headings), len(blocks), len(code_blocks), len(links),
+        title,
+        len(headings),
+        len(blocks),
+        len(code_blocks),
+        len(links),
     )
     return ParsedDocument(
         metadata=metadata,

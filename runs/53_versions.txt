@@ -1,0 +1,32 @@
+$ python --version
+Python 3.10.11
+
+$ pip list (используемые пакеты)
+alembic==1.20.1
+coverage==7.16.2
+fakeredis==2.40.0
+fastapi==0.162.0
+httpx==0.28.1
+markdown-it-py==4.2.0
+matplotlib==3.10.9
+mypy==2.4.1
+psycopg==3.3.6
+psycopg-binary==3.3.6
+pydantic==2.14.2
+pydantic-settings==2.15.0
+pytest==9.2.0
+pytest-cov==7.1.0
+python-multipart==0.0.32
+PyYAML==6.0.3
+redis==8.1.0
+ruff==0.17.3
+snowballstemmer==3.1.1
+SQLAlchemy==2.0.55
+starlette==1.7.0
+uvicorn==0.54.0
+
+$ psql -c "SHOW server_version"
+18.4
+
+$ redis-cli INFO server | grep redis_version
+redis_version:8.0.5

@@ -120,14 +120,16 @@ class SearchEngine:
     def _build_result(
         self, query: SearchQuery, query_terms: list[str], scores: dict[str, float]
     ) -> SearchResult:
-        matched = [
-            doc_id for doc_id in scores if query.filters.matches(self._documents[doc_id])
-        ]
+        matched = [doc_id for doc_id in scores if query.filters.matches(self._documents[doc_id])]
         ordered = self._sort(matched, scores, query.sort)
         page = ordered[query.offset : query.offset + query.limit]
         logger.debug(
             "Запрос %r: термины %s, метод %s, найдено %d, после фильтров %d",
-            query.text, query_terms, query.scorer, len(scores), len(matched),
+            query.text,
+            query_terms,
+            query.scorer,
+            len(scores),
+            len(matched),
         )
         return SearchResult(
             hits=tuple(self._hit(doc_id, scores[doc_id], query_terms) for doc_id in page),

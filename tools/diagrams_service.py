@@ -161,26 +161,31 @@ def save_flow() -> None:
 
 def _sequence(participants: list[str], messages: list[tuple], name: str) -> None:
     """Диаграмма последовательности. Сообщение: (откуда, куда, текст[, 'return'])."""
-    step_x, step_y = 5.2, 0.95
+    step_x, step_y, box_width = 4.5, 1.0, 4.1
     positions = {title: index * step_x for index, title in enumerate(participants)}
-    height = (len(messages) + 1) * step_y + 1.6
-    width = (len(participants) - 1) * step_x + 4.8
+    height = (len(messages) + 1) * step_y + 1.5
+    left = -box_width / 2 - 0.15
+    width = (len(participants) - 1) * step_x + box_width + 0.3
     fig = plt.figure(figsize=(width * INCHES_PER_UNIT, height * INCHES_PER_UNIT))
     ax = fig.add_axes((0, 0, 1, 1))
-    top = height - 1.3
+    top = height - 1.25
     for title, x in positions.items():
         ax.add_patch(
             Rectangle(
-                (x - 2.2, top), 4.4, 1.1, facecolor=FILL["proc"], edgecolor=EDGE, linewidth=1.2
+                (x - box_width / 2, top),
+                box_width,
+                1.1,
+                facecolor=FILL["proc"],
+                edgecolor=EDGE,
+                linewidth=1.2,
             )
         )
-        ax.text(x, top + 0.55, title, ha="center", va="center", fontsize=12.5)
+        ax.text(x, top + 0.55, title, ha="center", va="center", fontsize=14)
         ax.plot([x, x], [0.2, top], color="#9AA0A6", linewidth=1, linestyle=(0, (4, 3)))
-    y = top - 0.65
+    y = top - 0.7
     for message in messages:
         source, target, text, *kind = message
         x1, x2 = positions[source], positions[target]
-        returning = bool(kind)
         ax.add_patch(
             FancyArrowPatch(
                 (x1, y),
@@ -189,7 +194,7 @@ def _sequence(participants: list[str], messages: list[tuple], name: str) -> None
                 mutation_scale=13,
                 color=EDGE,
                 linewidth=1.2,
-                linestyle=(0, (4, 3)) if returning else "-",
+                linestyle=(0, (4, 3)) if kind else "-",
                 shrinkA=0,
                 shrinkB=0,
             )
@@ -200,11 +205,11 @@ def _sequence(participants: list[str], messages: list[tuple], name: str) -> None
             text,
             ha="center",
             va="bottom",
-            fontsize=11.5,
+            fontsize=13,
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 1},
         )
         y -= step_y
-    ax.set_xlim(-2.4, width - 2.4)
+    ax.set_xlim(left, left + width)
     ax.set_ylim(0, height)
     ax.axis("off")
     fig.savefig(OUT / name, dpi=200, facecolor="white")
@@ -212,46 +217,39 @@ def _sequence(participants: list[str], messages: list[tuple], name: str) -> None
 
 
 def sequences() -> None:
-    client, api, service = "Клиент", "REST API", "KnowledgeBase"
+    api, service = "REST API", "KnowledgeBase"
     cache, core, db = "Кэш (Redis)", "Индекс в памяти", "PostgreSQL"
     _sequence(
-        [client, api, service, cache, core, db],
+        [api, service, cache, core, db],
         [
-            (client, api, "GET /search?q=…"),
             (api, service, "search(query)"),
-            (service, cache, "GET поколение, GET ключ"),
-            (cache, service, "запись или пусто", "return"),
-            (service, api, "выдача из кэша", "return"),
-            (api, client, "200, X-Cache: HIT", "return"),
-            (client, api, "GET /search (другой запрос)"),
-            (api, service, "search(query)"),
-            (service, cache, "GET поколение, GET ключ"),
+            (service, cache, "GET поколение, ключ"),
+            (cache, service, "запись найдена", "return"),
+            (service, api, "выдача, X-Cache: HIT", "return"),
+            (api, service, "search(другой запрос)"),
+            (service, cache, "GET поколение, ключ"),
             (cache, service, "пусто", "return"),
             (service, db, "fulltext_scores (только метод pgfts)"),
             (db, service, "оценки документов", "return"),
             (service, core, "search или rank_scores"),
             (core, service, "результаты и фрагменты", "return"),
             (service, cache, "SET ключ, TTL"),
-            (service, api, "выдача", "return"),
-            (api, client, "200, X-Cache: MISS", "return"),
+            (service, api, "выдача, X-Cache: MISS", "return"),
         ],
         "sequence_search.png",
     )
     _sequence(
-        [client, api, service, db, core, cache],
+        [api, service, db, core, cache],
         [
-            (client, api, "PUT /documents/{id}"),
-            (api, service, "update_document(...)"),
+            (api, service, "update_document"),
             (service, db, "SELECT документ"),
             (db, service, "строка", "return"),
             (service, db, "SELECT … FOR UPDATE"),
             (db, service, "строка заблокирована", "return"),
-            (service, db, "INSERT, UPDATE"),
-            (service, db, "COMMIT"),
+            (service, db, "INSERT, UPDATE, COMMIT"),
             (service, core, "add_document (замена)"),
             (service, cache, "INCR поколение"),
             (service, api, "новая версия", "return"),
-            (api, client, "200, version = N + 1", "return"),
         ],
         "sequence_update.png",
     )
@@ -538,10 +536,10 @@ def er_diagram() -> None:
     documents = rows("documents")
     versions = rows("document_versions")
     top = 10.0
-    boxes["documents"] = Box("documents", 0, top, 11.0, documents, [])
-    boxes["versions"] = Box("document_versions", 14.5, top, 11.0, versions, [])
+    boxes["documents"] = Box("documents", 0, top, 9.5, documents, [])
+    boxes["versions"] = Box("document_versions", 12.0, top, 9.5, versions, [])
     bottom = min(box.bottom for box in boxes.values()) - 0.3
-    right = 25.8
+    right = 21.8
     fig = plt.figure(
         figsize=((right + 0.3) * INCHES_PER_UNIT, (top + 0.3 - bottom) * INCHES_PER_UNIT)
     )
@@ -581,9 +579,9 @@ def er_diagram() -> None:
         for row in box.fields:
             ax.text(box.x + 0.2, y, row, fontsize=13, va="center")
             y -= LINE
-    ax.plot([11.0, 14.5], [top - 1.2, top - 1.2], color=EDGE, linewidth=1.3)
-    ax.text(11.2, top - 1.1, "1", fontsize=13, va="bottom")
-    ax.text(14.3, top - 1.1, "N", fontsize=13, va="bottom", ha="right")
+    ax.plot([9.5, 12.0], [top - 1.2, top - 1.2], color=EDGE, linewidth=1.3)
+    ax.text(9.7, top - 1.1, "1", fontsize=13, va="bottom")
+    ax.text(11.8, top - 1.1, "N", fontsize=13, va="bottom", ha="right")
     ax.set_xlim(-0.3, right)
     ax.set_ylim(bottom, top + 0.3)
     ax.axis("off")

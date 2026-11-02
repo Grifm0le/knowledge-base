@@ -89,8 +89,20 @@ def test_cli_search(capsys):
 def test_cli_search_with_filters(capsys):
     code = main(
         [
-            "search", str(SAMPLES), "--tag", "Git", "--category", "инструменты", "--author",
-            "балашов е. р.", "--from", "2026-01-01", "--to", "2026-12-31", "--sort", "created",
+            "search",
+            str(SAMPLES),
+            "--tag",
+            "Git",
+            "--category",
+            "инструменты",
+            "--author",
+            "балашов е. р.",
+            "--from",
+            "2026-01-01",
+            "--to",
+            "2026-12-31",
+            "--sort",
+            "created",
         ]
     )
     output = capsys.readouterr().out

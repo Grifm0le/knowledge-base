@@ -145,9 +145,7 @@ class SqlDocumentRepository(DocumentRepository):
                 session.refresh(row)
                 return self._stored(row, draft.content)
         except IntegrityError as exc:
-            raise DuplicateSourceError(
-                f"Документ из файла {draft.source_name!r} уже есть"
-            ) from exc
+            raise DuplicateSourceError(f"Документ из файла {draft.source_name!r} уже есть") from exc
 
     def update(
         self, doc_id: str, draft: DocumentDraft, expected_version: int | None = None
