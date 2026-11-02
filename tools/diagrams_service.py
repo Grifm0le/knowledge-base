@@ -403,111 +403,93 @@ def _uses(ax: plt.Axes, start: tuple[float, float], end: tuple[float, float], la
 
 
 def classes() -> None:
-    service = class_members(SRC / "service.py", "KnowledgeBase")
     repo_path = SRC / "storage" / "repository.py"
+    cache_path = SRC / "cache.py"
+    scoring_path = SRC / "scoring.py"
+    service = class_members(SRC / "service.py", "KnowledgeBase")
     repo = class_members(repo_path, "DocumentRepository")
     sql = class_members(repo_path, "SqlDocumentRepository")
-    cache_path = SRC / "cache.py"
+    engine = class_members(SRC / "search.py", "SearchEngine")
     search_cache = class_members(cache_path, "SearchCache")
     cache = class_members(cache_path, "Cache")
     memory = class_members(cache_path, "MemoryCache")
     redis_cache = class_members(cache_path, "RedisCache")
-    engine = class_members(SRC / "search.py", "SearchEngine")
+    scorer = class_members(scoring_path, "Scorer")
 
-    top = 19.0
-    a = Box("KnowledgeBase", 0, top, 7.0, service.fields, service.methods)
-    b = Box("DocumentRepository", 9.4, top, 7.0, repo.fields, repo.methods, abstract=True)
+    top, width, column2, column3 = 0.0, 6.6, 8.8, 17.6
+    a = Box("KnowledgeBase", 0, top, width, service.fields, service.methods)
+    b = Box("DocumentRepository", column2, top, width, repo.fields, repo.methods, abstract=True)
     private = [m for m in sql.methods if m.startswith("_")]
-    c = Box("SqlDocumentRepository", 9.4, b.bottom - 1.0, 7.0, sql.fields, private)
-    d = Box("SearchCache", 18.8, top, 8.4, search_cache.fields, search_cache.methods)
-    e = Box("Cache", 18.8, d.bottom - 1.0, 8.4, [], cache.methods, abstract=True)
-    f = Box("NullCache", 18.8, e.bottom - 1.0, 2.5, [], [])
-    g = Box(
-        "MemoryCache",
-        21.5,
-        e.bottom - 1.0,
-        2.9,
-        [m for m in memory.fields if m.startswith("_")],
-        [],
+    c = Box("SqlDocumentRepository", column2, b.bottom - 1.0, width, sql.fields, private)
+    i = Box("SearchEngine", column3, top, width, engine.fields, engine.methods)
+    d = Box(
+        "SearchCache", column3, i.bottom - 1.0, width, search_cache.fields, search_cache.methods
     )
-    h = Box(
-        "RedisCache",
-        24.6,
-        e.bottom - 1.0,
-        2.9,
-        redis_cache.fields,
-        ["from_url"],
-    )
-    i = Box("SearchEngine", 29.4, top, 6.4, engine.fields, engine.methods)
-    boxes = [a, b, c, d, e, f, g, h, i]
+    e = Box("Cache", column3, d.bottom - 1.0, width, [], cache.methods, abstract=True)
+    cache_children = e.bottom - 1.0
+    f = Box("NullCache", 15.3, cache_children, 2.5, [], [])
+    g = Box("MemoryCache", 18.1, cache_children, 2.9, memory.fields, [])
+    h = Box("RedisCache", 21.3, cache_children, 2.9, redis_cache.fields, ["from_url"])
 
-    bottom = min(box.bottom for box in boxes) - 0.3
-    right = max(box.x + box.width for box in boxes) + 0.3
-    fig = plt.figure(
-        figsize=((right + 0.3) * INCHES_PER_UNIT, (top + 0.3 - bottom) * INCHES_PER_UNIT)
+    s = Box(
+        "Scorer",
+        4.0,
+        min(a.bottom, c.bottom) - 1.2,
+        5.8,
+        scorer.fields,
+        scorer.methods,
+        abstract=True,
     )
+    scorers = [
+        Box(name, x, s.bottom - 1.0, 4.4, members.fields, members.methods)
+        for name, x, members in (
+            ("TfIdfScorer", 0, class_members(scoring_path, "TfIdfScorer")),
+            ("Bm25Scorer", 4.7, class_members(scoring_path, "Bm25Scorer")),
+            ("HybridScorer", 9.4, class_members(scoring_path, "HybridScorer")),
+        )
+    ]
+    boxes = [a, b, c, d, e, f, g, h, i, s, *scorers]
+
+    level1, level2 = top + 0.75, top + 1.5
+    bottom = min(box.bottom for box in boxes) - 0.3
+    right = column3 + width + 0.3
+    ceiling = level2 + 0.6
+    figure_width, figure_height = right + 0.3, ceiling - bottom
+    fig = plt.figure(figsize=(figure_width * INCHES_PER_UNIT, figure_height * INCHES_PER_UNIT))
     ax = fig.add_axes((0, 0, 1, 1))
     for box in boxes:
         _draw_box(ax, box)
     _inherits(ax, c, b)
-    _inherits(ax, f, e)
-    _inherits(ax, g, e)
-    _inherits(ax, h, e)
+    for child in (f, g, h):
+        _inherits(ax, child, e)
+    for child in scorers:
+        _inherits(ax, child, s)
     _uses(ax, (a.x + a.width, top - 1.2), (b.x, top - 1.2), "_repository")
     _uses(ax, (d.center, d.bottom), (e.center, e.top), "")
     ax.text(d.center + 0.15, (d.bottom + e.top) / 2, "_cache", va="center", fontsize=12)
-    # Связи сервиса с кэшем и движком идут над блоками, чтобы не пересекать их.
-    level = top + 0.75
-    ax.plot([a.center, a.center, d.center], [top, level, level], color=EDGE, linewidth=1.3)
-    _uses(ax, (d.center, level), (d.center, top), "")
-    ax.text(
-        (a.center + d.center) / 2, level + 0.08, "_cache", ha="center", va="bottom", fontsize=12
-    )
-    level2 = top + 1.5
+
+    # Связи сервиса с кэшем и движком идут над блоками и в промежутке между столбцами.
+    gap_x, cache_y = column3 - 1.1, d.top - 1.0
     ax.plot(
-        [a.center - 1.5, a.center - 1.5, i.center], [top, level2, level2], color=EDGE, linewidth=1.3
+        [a.center, a.center, gap_x, gap_x],
+        [top, level1, level1, cache_y],
+        color=EDGE,
+        linewidth=1.3,
     )
+    _uses(ax, (gap_x, cache_y), (d.x, cache_y), "")
+    ax.text((a.center + gap_x) / 2, level1 + 0.08, "_cache", ha="center", va="bottom", fontsize=12)
+    start_x = a.center - 1.5
+    ax.plot([start_x, start_x, i.center], [top, level2, level2], color=EDGE, linewidth=1.3)
     _uses(ax, (i.center, level2), (i.center, top), "")
     ax.text(
-        (a.center + i.center) / 2, level2 + 0.08, "_engine", ha="center", va="bottom", fontsize=12
+        (start_x + i.center) / 2, level2 + 0.08, "_engine", ha="center", va="bottom", fontsize=12
     )
+
     ax.set_xlim(-0.3, right)
-    ax.set_ylim(bottom, top + 2.1)
+    ax.set_ylim(bottom, ceiling)
     ax.axis("off")
-    fig.set_size_inches((right + 0.3) * INCHES_PER_UNIT, (top + 2.1 - bottom) * INCHES_PER_UNIT)
-    fig.savefig(OUT / "classes.png", dpi=170, facecolor="white")
+    fig.savefig(OUT / "classes.png", dpi=200, facecolor="white")
     plt.close(fig)
-
-
-def scorers() -> None:
-    path = SRC / "scoring.py"
-    scorer = class_members(path, "Scorer")
-    top = 8.0
-    parent = Box("Scorer", 6.0, top, 8.0, scorer.fields, scorer.methods, abstract=True)
-    children = [
-        Box(name, x, parent.bottom - 1.2, 6.2, *_fields_methods(path, name))
-        for name, x in (("TfIdfScorer", 0), ("Bm25Scorer", 6.9), ("HybridScorer", 13.8))
-    ]
-    bottom = min(box.bottom for box in children) - 0.3
-    right = children[-1].x + children[-1].width + 0.3
-    fig = plt.figure(
-        figsize=((right + 0.3) * INCHES_PER_UNIT, (top + 0.3 - bottom) * INCHES_PER_UNIT)
-    )
-    ax = fig.add_axes((0, 0, 1, 1))
-    for box in [parent, *children]:
-        _draw_box(ax, box)
-    for child in children:
-        _inherits(ax, child, parent)
-    ax.set_xlim(-0.3, right)
-    ax.set_ylim(bottom, top + 0.3)
-    ax.axis("off")
-    fig.savefig(OUT / "scorers.png", dpi=170, facecolor="white")
-    plt.close(fig)
-
-
-def _fields_methods(path: Path, name: str) -> tuple[list[str], list[str]]:
-    members = class_members(path, name)
-    return members.fields, members.methods
 
 
 def er_diagram() -> None:
@@ -595,6 +577,5 @@ if __name__ == "__main__":
     save_flow()
     sequences()
     classes()
-    scorers()
     er_diagram()
     print("Сохранено:", ", ".join(sorted(p.name for p in OUT.glob("*.png"))))

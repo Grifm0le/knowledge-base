@@ -1,0 +1,3 @@
+$ pytest -q   (без KB_TEST_DATABASE_URL и KB_TEST_REDIS_URL)
+205 passed, 85 skipped, 1 warning in 2.62s
+[exit 0]
