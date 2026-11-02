@@ -56,6 +56,8 @@ branch = true
 line-length = 100
 src = ["src", "tests"]
 target-version = "py310"
+# Наборы для тестов импорта: среди них намеренно файл не в UTF-8.
+extend-exclude = ["tests/data"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RET"]
