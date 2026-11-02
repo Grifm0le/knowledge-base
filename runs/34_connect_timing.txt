@@ -1,0 +1,14 @@
+$ python timing.py (замер соединений)
+localhost резолвится в: ['127.0.0.1', '::1']
+TCP ::1:8000 (сервис слушает только IPv4)      2059.2 мс  ConnectionRefusedError
+TCP 127.0.0.1:8000                                0.4 мс  ok
+TCP ::1:55432                                    14.5 мс  ok
+TCP 127.0.0.1:55432                               0.5 мс  ok
+TCP ::1:56379                                  2023.7 мс  ConnectionRefusedError
+TCP 127.0.0.1:56379                               0.6 мс  ok
+TCP localhost:8000                             2044.9 мс  ok
+psycopg.connect localhost                        54.0 мс  ok
+psycopg.connect 127.0.0.1                       149.9 мс  ok
+redis ping localhost                           2045.7 мс  ok
+redis ping 127.0.0.1                              5.4 мс  ok
+[exit 0]

@@ -1,0 +1,14 @@
+$ ruff check src tests tools migrations
+tests\test_api.py:115:101: E501 Line too long (105 > 100)
+tests\test_scenarios.py:57:101: E501 Line too long (103 > 100)
+tests\test_scenarios.py:71:101: E501 Line too long (102 > 100)
+tests\test_scenarios.py:74:101: E501 Line too long (105 > 100)
+tools\api_smoke.py:37:101: E501 Line too long (108 > 100)
+tools\api_smoke.py:57:101: E501 Line too long (102 > 100)
+tools\api_smoke.py:70:101: E501 Line too long (102 > 100)
+tools\api_smoke.py:78:101: E501 Line too long (118 > 100)
+tools\api_smoke.py:83:101: E501 Line too long (117 > 100)
+tools\api_smoke.py:84:101: E501 Line too long (124 > 100)
+tools\api_smoke.py:87:101: E501 Line too long (102 > 100)
+Found 11 errors.
+[exit 1]

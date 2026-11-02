@@ -1,0 +1,13 @@
+INFO:     Started server process [22496]
+INFO:     Waiting for application startup.
+2026-11-02 16:35:08,626 INFO    kb.service [-] Индекс построен: документов 8 за 0.41 с
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+2026-11-02 16:35:08,733 INFO    kb.api.app [aba61bca0a7b] GET /api/v1/health -> 200, 22.7 мс
+2026-11-02 16:35:10,762 INFO    kb.api.app [7f5fb7cc6dc5] GET /api/v1/search -> 200, 5.6 мс
+2026-11-02 16:35:10,766 INFO    kb.api.app [a8e24cee69ba] GET /api/v1/search -> 200, 2.8 мс
+2026-11-02 16:35:10,822 INFO    kb.service [be19cfded3b0] Документ 0d31b27d-04b1-4f8e-ba5d-806b350984c0 создан: 'Заметка монитора'
+2026-11-02 16:35:10,824 INFO    kb.api.app [be19cfded3b0] POST /api/v1/documents -> 201, 53.1 мс
+2026-11-02 16:35:10,832 INFO    kb.api.app [d777f8fa5935] GET /api/v1/search -> 200, 6.7 мс
+2026-11-02 16:35:10,839 INFO    kb.service [ae70f9a8ee99] Документ 0d31b27d-04b1-4f8e-ba5d-806b350984c0 удалён
+2026-11-02 16:35:10,840 INFO    kb.api.app [ae70f9a8ee99] DELETE /api/v1/documents/0d31b27d-04b1-4f8e-ba5d-806b350984c0 -> 204, 6.2 мс

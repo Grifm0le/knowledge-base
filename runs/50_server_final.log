@@ -1,0 +1,48 @@
+INFO:     Started server process [31100]
+INFO:     Waiting for application startup.
+2026-11-02 16:36:12,672 INFO    kb.service [-] Индекс построен: документов 0 за 0.08 с
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-11-02 16:36:13,186 INFO    kb.api.app [0bc9bd233601] GET /api/v1/health -> 200, 18.5 мс
+2026-11-02 16:36:13,477 INFO    kb.api.app [6c189e5c4494] GET /api/v1/health -> 200, 2.4 мс
+2026-11-02 16:36:13,500 INFO    kb.service [c3d6819d7bc8] Документ ae9ebfb2-9607-499f-8d3c-39cc6fe57be8 создан: 'Как работает BM25'
+2026-11-02 16:36:13,509 INFO    kb.service [c3d6819d7bc8] Документ 5010a2b6-e4a7-4ede-b1ae-c6caf299b2fc создан: 'Заметки по Docker Compose'
+2026-11-02 16:36:13,515 INFO    kb.service [c3d6819d7bc8] Документ 2f51b3b3-66fd-476c-a001-f215e2a6d4f8 создан: 'FastAPI Basics'
+2026-11-02 16:36:13,524 INFO    kb.service [c3d6819d7bc8] Документ a94c46b7-f177-47b0-88ff-7ed608d44bf9 создан: 'Работа с Git'
+2026-11-02 16:36:13,530 INFO    kb.service [c3d6819d7bc8] Документ 458d8cfd-7fbf-4b49-a0ff-89f4180ed988 создан: 'Идеи для базы знаний'
+2026-11-02 16:36:13,540 INFO    kb.service [c3d6819d7bc8] Документ 44899c6c-b8f6-4acd-b383-d29dd4dfbba2 создан: 'Индексы в PostgreSQL'
+2026-11-02 16:36:13,550 INFO    kb.service [c3d6819d7bc8] Документ 4f54bb53-cac8-4751-b5a9-1cb1a11bbd96 создан: 'Тестирование на pytest'
+2026-11-02 16:36:13,558 INFO    kb.service [c3d6819d7bc8] Документ 60d2c7a2-8ed8-4745-ba8d-59a5bda8f1ee создан: 'Кэширование в Redis'
+2026-11-02 16:36:13,558 INFO    kb.service [c3d6819d7bc8] Импорт: создано 8, обновлено 0, без изменений 0, отклонено 0
+2026-11-02 16:36:13,559 INFO    kb.api.app [c3d6819d7bc8] POST /api/v1/documents/import -> 200, 79.3 мс
+2026-11-02 16:36:13,610 INFO    kb.service [0353216818ee] Импорт: создано 0, обновлено 0, без изменений 8, отклонено 0
+2026-11-02 16:36:13,611 INFO    kb.api.app [0353216818ee] POST /api/v1/documents/import -> 200, 51.0 мс
+2026-11-02 16:36:13,616 INFO    kb.api.app [f473b613fcd0] GET /api/v1/search -> 200, 4.0 мс
+2026-11-02 16:36:13,619 INFO    kb.api.app [92ae10a0af73] GET /api/v1/search -> 200, 1.6 мс
+2026-11-02 16:36:13,623 INFO    kb.api.app [b8fe74b6b5c7] GET /api/v1/search -> 200, 2.9 мс
+2026-11-02 16:36:13,628 INFO    kb.api.app [e80e1a374b84] GET /api/v1/search -> 200, 3.0 мс
+2026-11-02 16:36:13,634 INFO    kb.api.app [fda1f883968b] GET /api/v1/search -> 200, 6.0 мс
+2026-11-02 16:36:13,638 INFO    kb.api.app [fa834d13961c] GET /api/v1/search -> 200, 2.1 мс
+2026-11-02 16:36:13,644 INFO    kb.service [a1297b1e0ba2] Документ 11af7fac-87dd-47ab-b6f0-8f6514d50427 создан: 'Проверочная заметка'
+2026-11-02 16:36:13,645 INFO    kb.api.app [a1297b1e0ba2] POST /api/v1/documents -> 201, 6.1 мс
+2026-11-02 16:36:13,649 INFO    kb.api.app [1e43ae4d048b] GET /api/v1/search -> 200, 2.7 мс
+2026-11-02 16:36:13,653 INFO    kb.api.app [3da6ae1b3e74] GET /api/v1/search -> 200, 1.9 мс
+2026-11-02 16:36:13,664 INFO    kb.service [69d8fcd54eb0] Документ 11af7fac-87dd-47ab-b6f0-8f6514d50427: новая версия 2
+2026-11-02 16:36:13,665 INFO    kb.api.app [69d8fcd54eb0] PUT /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427 -> 200, 10.2 мс
+2026-11-02 16:36:13,670 INFO    kb.api.app [2cc01c05e652] PUT /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427 -> 409, 4.2 мс
+2026-11-02 16:36:13,673 INFO    kb.api.app [275d683de400] GET /api/v1/search -> 200, 2.4 мс
+2026-11-02 16:36:13,678 INFO    kb.api.app [7d4ead718b90] GET /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427/versions -> 200, 3.4 мс
+2026-11-02 16:36:13,684 INFO    kb.api.app [5a4a8edd6f1e] GET /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427/diff -> 200, 4.0 мс
+2026-11-02 16:36:13,692 INFO    kb.service [e26b497c0bb4] Документ 11af7fac-87dd-47ab-b6f0-8f6514d50427: новая версия 3
+2026-11-02 16:36:13,693 INFO    kb.api.app [e26b497c0bb4] POST /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427/versions/1/restore -> 200, 8.2 мс
+2026-11-02 16:36:13,695 INFO    kb.api.app [96022bbc6288] POST /api/v1/documents -> 422, 1.1 мс
+2026-11-02 16:36:13,698 INFO    kb.api.app [0cd2400280e9] GET /api/v1/search -> 400, 1.5 мс
+2026-11-02 16:36:13,701 INFO    kb.api.app [81cac436f5a8] GET /api/v1/documents/00000000-0000-0000-0000-000000000000 -> 404, 2.2 мс
+2026-11-02 16:36:13,703 INFO    kb.api.app [669639e29d4b] GET /api/v1/documents/abc -> 422, 0.5 мс
+2026-11-02 16:36:13,708 INFO    kb.service [974472c437c3] Документ 11af7fac-87dd-47ab-b6f0-8f6514d50427 удалён
+2026-11-02 16:36:13,708 INFO    kb.api.app [974472c437c3] DELETE /api/v1/documents/11af7fac-87dd-47ab-b6f0-8f6514d50427 -> 204, 4.3 мс
+2026-11-02 16:36:13,711 INFO    kb.api.app [af4214fb8cb3] GET /api/v1/search -> 200, 2.5 мс
+2026-11-02 16:36:13,718 INFO    kb.api.app [543561c99b99] GET /api/v1/stats -> 200, 5.0 мс
+2026-11-02 16:36:13,772 INFO    kb.api.app [2ea5c68842a8] GET /openapi.json -> 200, 31.3 мс
+2026-11-02 16:36:14,332 INFO    kb.api.app [ddedeacaa09a] GET /docs -> 200, 0.4 мс
+2026-11-02 16:36:14,924 INFO    kb.api.app [420274c0894b] GET /openapi.json -> 200, 1.0 мс

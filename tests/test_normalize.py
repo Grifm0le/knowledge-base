@@ -17,6 +17,12 @@ def test_decode_strips_bom():
     assert decode_document("﻿текст".encode()) == "текст"
 
 
+def test_decode_rejects_null_character():
+    with pytest.raises(DocumentValidationError) as error:
+        decode_document("Текст\x00с нулём".encode())
+    assert error.value.code == "invalid_characters"
+
+
 def test_decode_rejects_other_encodings():
     with pytest.raises(DocumentValidationError) as error:
         decode_document("текст".encode("cp1251"))

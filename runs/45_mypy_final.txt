@@ -1,0 +1,3 @@
+$ mypy
+Success: no issues found in 23 source files
+[exit 0]

@@ -1,0 +1,26 @@
+$ pytest tests/test_storage_pg.py::test_fulltext_gives_title_more_weight_than_code --pdb
+F
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> traceback >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+E   KeyError: 'f5be6f8c-62e7-422f-b715-b9d09e4c1064'
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> entering PDB >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+>>>>>>>>>>>>>>>>>> PDB post_mortem (IO-capturing turned off) >>>>>>>>>>>>>>>>>>
+> c:\users\user\documents\code\knowledge-base\tests\test_storage_pg.py(174)test_fulltext_gives_title_more_weight_than_code()
+-> assert scores[in_title] > scores[in_code]
+(Pdb) 'f5be6f8c-62e7-422f-b715-b9d09e4c1064'
+(Pdb) 'c56d2e7b-ec90-41ac-9fe8-fe376dc9ad5e'
+(Pdb) {}
+(Pdb) '---\ntitle: Кэширование\n---\nТекст заметки.'
+(Pdb) '# Заметка\n\nТекст.\n\n```\nкэширование\n```\n'
+(Pdb) (Pdb) [('Кэширование', '', 'Текст заметки.', '', "'заметк':3C 'кэширован':1A 'текст':2C"), ('Заметка', 'Заметка', 'Текст.', 'кэширование\n', "'заметк':1A,2B 'кэширован':4 'текст':3C")]
+(Pdb) 
+============================== warnings summary ===============================
+.venv\lib\site-packages\fastapi\testclient.py:1
+  C:\Users\User\Documents\Code\knowledge-base\.venv\lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_storage_pg.py::test_fulltext_gives_title_more_weight_than_code
+!!!!!!!!!!!!!!!!!! _pytest.outcomes.Exit: Quitting debugger !!!!!!!!!!!!!!!!!!!
+1 failed, 1 warning in 0.83s

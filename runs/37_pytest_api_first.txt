@@ -1,0 +1,468 @@
+$ pytest (первый запуск после добавления API, хранилища и кэша)
+.............FFF........................................................ [ 25%]
+........................................................................ [ 50%]
+........................................................................ [ 76%]
+.................F......................F.....F...F................      [100%]
+================================== FAILURES ===================================
+________________ test_same_source_name_twice_is_a_clean_error _________________
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   psycopg.errors.UniqueViolation: повторяющееся значение ключа нарушает ограничение уникальности "documents_source_name_key"
+E   DETAIL:  Ключ "(source_name)=(cache.md)" уже существует.
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:64: in test_same_source_name_twice_is_a_clean_error
+    response = client.post(
+.venv\lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+.venv\lib\site-packages\starlette\testclient.py:463: in request
+    return super().request(
+.venv\lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+.venv\lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv\lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv\lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+.venv\lib\site-packages\starlette\testclient.py:360: in handle_request
+    raise exc
+.venv\lib\site-packages\starlette\testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv\lib\site-packages\anyio\from_thread.py:347: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:458: in result
+    return self.__get_result()
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:403: in __get_result
+    raise self._exception
+.venv\lib\site-packages\anyio\from_thread.py:272: in _call_func
+    retval = await retval_or_awaitable
+.venv\lib\site-packages\fastapi\applications.py:1194: in __call__
+    await super().__call__(scope, receive, send)
+.venv\lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\lib\site-packages\fastapi\telemetry\_asgi.py:151: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\base.py:197: in __call__
+    response = await self.dispatch_func(request, call_next)
+src\kb\api\app.py:105: in log_request
+    response = await call_next(request)
+.venv\lib\site-packages\starlette\middleware\base.py:173: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv\lib\site-packages\starlette\middleware\base.py:149: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv\lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2811: in app
+    await route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1839: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2894: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1865: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1328: in handle
+    await effective_context.app(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:166: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\routing.py:152: in app
+    response = await f(request)
+.venv\lib\site-packages\fastapi\routing.py:745: in app
+    raw_response = await run_endpoint_function(
+.venv\lib\site-packages\fastapi\routing.py:374: in run_endpoint_function
+    return await run_in_threadpool(
+.venv\lib\site-packages\starlette\concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+.venv\lib\site-packages\anyio\to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:2779: in run_sync_in_worker_thread
+    return await future
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:1124: in run
+    result = context.run(func, *args)
+.venv\lib\site-packages\fastapi\telemetry\_api.py:244: in _run_sync_endpoint
+    return function(**arguments)
+src\kb\api\routes.py:53: in create_document
+    return service.create_document(body.content, body.source_name)
+src\kb\service.py:94: in create_document
+    stored = self._repository.create(draft)
+src\kb\storage\repository.py:133: in create
+    session.flush()
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4353: in flush
+    self._flush(objects)
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4488: in _flush
+    with util.safe_reraise():
+.venv\lib\site-packages\sqlalchemy\util\langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4449: in _flush
+    flush_context.execute()
+.venv\lib\site-packages\sqlalchemy\orm\unitofwork.py:465: in execute
+    rec.execute(self)
+.venv\lib\site-packages\sqlalchemy\orm\unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv\lib\site-packages\sqlalchemy\orm\persistence.py:94: in save_obj
+    _emit_insert_statements(
+.venv\lib\site-packages\sqlalchemy\orm\persistence.py:1234: in _emit_insert_statements
+    result = connection.execute(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1428: in execute
+    return meth(
+.venv\lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1650: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1855: in _execute_context
+    return self._exec_single_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1995: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:2372: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   sqlalchemy.exc.IntegrityError: (psycopg.errors.UniqueViolation) повторяющееся значение ключа нарушает ограничение уникальности "documents_source_name_key"
+E   DETAIL:  Ключ "(source_name)=(cache.md)" уже существует.
+E   [SQL: INSERT INTO documents (id, source_name, current_version, title, tags, category, author, created, body, keywords, code, content_hash) VALUES (%(id)s::UUID, %(source_name)s::VARCHAR, %(current_version)s::INTEGER, %(title)s::VARCHAR, %(tags)s::TEXT[], %(category)s::VARCHAR, %(author)s::VARCHAR, %(created)s::DATE, %(body)s::VARCHAR, %(keywords)s::VARCHAR, %(code)s::VARCHAR, %(content_hash)s::VARCHAR) RETURNING documents.created_at, documents.updated_at, documents.search_vector]
+E   [parameters: {'id': 'c9e3b4a4-30b2-4e49-907d-b90fe8eb5b8f', 'source_name': 'cache.md', 'current_version': 1, 'title': 'Кэширование', 'tags': ['redis', 'кэш'], 'category': 'Базы данных', 'author': 'Автор', 'created': datetime.date(2026, 10, 11), 'body': 'Кэш хранит результат тяжёлой операции.\n\nЕщё.', 'keywords': 'Кэширование redis кэш', 'code': '', 'content_hash': 'a121ef6ead76e117ecf21ce4c6e7da5eb2197886c79a72caf2705c1c9677e8cd'}]
+E   (Background on this error at: https://sqlalche.me/e/20/gkpj)
+_________________ test_null_character_in_document_is_rejected _________________
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   psycopg.DataError: PostgreSQL text fields cannot contain NUL (0x00) bytes
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:71: in test_null_character_in_document_is_rejected
+    response = client.post("/api/v1/documents", json={"content": "# Заметка\n\nТекст\x00с нулём"})
+.venv\lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+.venv\lib\site-packages\starlette\testclient.py:463: in request
+    return super().request(
+.venv\lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+.venv\lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv\lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv\lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+.venv\lib\site-packages\starlette\testclient.py:360: in handle_request
+    raise exc
+.venv\lib\site-packages\starlette\testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv\lib\site-packages\anyio\from_thread.py:347: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:458: in result
+    return self.__get_result()
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:403: in __get_result
+    raise self._exception
+.venv\lib\site-packages\anyio\from_thread.py:272: in _call_func
+    retval = await retval_or_awaitable
+.venv\lib\site-packages\fastapi\applications.py:1194: in __call__
+    await super().__call__(scope, receive, send)
+.venv\lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\lib\site-packages\fastapi\telemetry\_asgi.py:151: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\base.py:197: in __call__
+    response = await self.dispatch_func(request, call_next)
+src\kb\api\app.py:105: in log_request
+    response = await call_next(request)
+.venv\lib\site-packages\starlette\middleware\base.py:173: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv\lib\site-packages\starlette\middleware\base.py:149: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv\lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2811: in app
+    await route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1839: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2894: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1865: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1328: in handle
+    await effective_context.app(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:166: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\routing.py:152: in app
+    response = await f(request)
+.venv\lib\site-packages\fastapi\routing.py:745: in app
+    raw_response = await run_endpoint_function(
+.venv\lib\site-packages\fastapi\routing.py:374: in run_endpoint_function
+    return await run_in_threadpool(
+.venv\lib\site-packages\starlette\concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+.venv\lib\site-packages\anyio\to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:2779: in run_sync_in_worker_thread
+    return await future
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:1124: in run
+    result = context.run(func, *args)
+.venv\lib\site-packages\fastapi\telemetry\_api.py:244: in _run_sync_endpoint
+    return function(**arguments)
+src\kb\api\routes.py:53: in create_document
+    return service.create_document(body.content, body.source_name)
+src\kb\service.py:94: in create_document
+    stored = self._repository.create(draft)
+src\kb\storage\repository.py:135: in create
+    session.flush()
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4353: in flush
+    self._flush(objects)
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4488: in _flush
+    with util.safe_reraise():
+.venv\lib\site-packages\sqlalchemy\util\langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+.venv\lib\site-packages\sqlalchemy\orm\session.py:4449: in _flush
+    flush_context.execute()
+.venv\lib\site-packages\sqlalchemy\orm\unitofwork.py:465: in execute
+    rec.execute(self)
+.venv\lib\site-packages\sqlalchemy\orm\unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+.venv\lib\site-packages\sqlalchemy\orm\persistence.py:94: in save_obj
+    _emit_insert_statements(
+.venv\lib\site-packages\sqlalchemy\orm\persistence.py:1234: in _emit_insert_statements
+    result = connection.execute(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1428: in execute
+    return meth(
+.venv\lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1650: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1855: in _execute_context
+    return self._exec_single_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1995: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:2372: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   sqlalchemy.exc.DataError: (psycopg.DataError) PostgreSQL text fields cannot contain NUL (0x00) bytes
+E   [SQL: INSERT INTO document_versions (document_id, version, title, content, content_hash) VALUES (%(document_id)s::UUID, %(version)s::INTEGER, %(title)s::VARCHAR, %(content)s::VARCHAR, %(content_hash)s::VARCHAR) RETURNING document_versions.created_at]
+E   [parameters: {'document_id': 'e9f9c2ba-6596-4001-8877-402e289ef6ad', 'version': 1, 'title': 'Заметка', 'content': '# Заметка\n\nТекст\x00с нулём', 'content_hash': 'acefdf8c7fd5f8d67c62cec8057c646b616db9195552fd56b06dd145f1c9d8fc'}]
+E   (Background on this error at: https://sqlalche.me/e/20/9h9h)
+_____________ test_null_character_in_query_does_not_break_search ______________
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   psycopg.DataError: PostgreSQL text fields cannot contain NUL (0x00) bytes
+
+The above exception was the direct cause of the following exception:
+tests\test_api.py:78: in test_null_character_in_query_does_not_break_search
+    response = client.get("/api/v1/search", params={"q": "кэш\x00", "scorer": scorer})
+.venv\lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+.venv\lib\site-packages\starlette\testclient.py:463: in request
+    return super().request(
+.venv\lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+.venv\lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+.venv\lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv\lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+.venv\lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+.venv\lib\site-packages\starlette\testclient.py:360: in handle_request
+    raise exc
+.venv\lib\site-packages\starlette\testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv\lib\site-packages\anyio\from_thread.py:347: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:458: in result
+    return self.__get_result()
+..\..\..\AppData\Local\Programs\Python\Python310\lib\concurrent\futures\_base.py:403: in __get_result
+    raise self._exception
+.venv\lib\site-packages\anyio\from_thread.py:272: in _call_func
+    retval = await retval_or_awaitable
+.venv\lib\site-packages\fastapi\applications.py:1194: in __call__
+    await super().__call__(scope, receive, send)
+.venv\lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+.venv\lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+.venv\lib\site-packages\fastapi\telemetry\_asgi.py:151: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\middleware\base.py:197: in __call__
+    response = await self.dispatch_func(request, call_next)
+src\kb\api\app.py:105: in log_request
+    response = await call_next(request)
+.venv\lib\site-packages\starlette\middleware\base.py:173: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+.venv\lib\site-packages\starlette\middleware\base.py:149: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+.venv\lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv\lib\site-packages\starlette\routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2811: in app
+    await route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1839: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:2894: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1865: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:1328: in handle
+    await effective_context.app(scope, receive, send)
+.venv\lib\site-packages\fastapi\routing.py:166: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv\lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv\lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv\lib\site-packages\fastapi\routing.py:152: in app
+    response = await f(request)
+.venv\lib\site-packages\fastapi\routing.py:745: in app
+    raw_response = await run_endpoint_function(
+.venv\lib\site-packages\fastapi\routing.py:374: in run_endpoint_function
+    return await run_in_threadpool(
+.venv\lib\site-packages\starlette\concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+.venv\lib\site-packages\anyio\to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:2779: in run_sync_in_worker_thread
+    return await future
+.venv\lib\site-packages\anyio\_backends\_asyncio.py:1124: in run
+    result = context.run(func, *args)
+.venv\lib\site-packages\fastapi\telemetry\_api.py:244: in _run_sync_endpoint
+    return function(**arguments)
+src\kb\api\routes.py:190: in search
+    outcome = service.search(query)
+src\kb\service.py:170: in search
+    payload = _payload(self._run_search(query), query)
+src\kb\service.py:207: in _run_search
+    scores = self._repository.fulltext_scores(query.text)
+src\kb\storage\repository.py:226: in fulltext_scores
+    return {doc_id: float(score) for doc_id, score in session.execute(statement)}
+.venv\lib\site-packages\sqlalchemy\orm\session.py:2373: in execute
+    return self._execute_internal(
+.venv\lib\site-packages\sqlalchemy\orm\session.py:2271: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+.venv\lib\site-packages\sqlalchemy\orm\context.py:306: in orm_execute_statement
+    result = conn.execute(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1428: in execute
+    return meth(
+.venv\lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1650: in _execute_clauseelement
+    ret = self._execute_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1855: in _execute_context
+    return self._exec_single_context(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1995: in _exec_single_context
+    self._handle_dbapi_exception(
+.venv\lib\site-packages\sqlalchemy\engine\base.py:2372: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+.venv\lib\site-packages\sqlalchemy\engine\base.py:1976: in _exec_single_context
+    self.dialect.do_execute(
+.venv\lib\site-packages\sqlalchemy\engine\default.py:964: in do_execute
+    cursor.execute(statement, parameters)
+.venv\lib\site-packages\psycopg\cursor.py:117: in execute
+    raise ex.with_traceback(None)
+E   sqlalchemy.exc.DataError: (psycopg.DataError) PostgreSQL text fields cannot contain NUL (0x00) bytes
+E   [SQL: SELECT documents.id, ts_rank_cd(documents.search_vector, to_tsquery('russian'::regconfig, replace(CAST(websearch_to_tsquery('russian'::regconfig, %(websearch_to_tsquery_1)s::VARCHAR) AS TEXT), %(replace_1)s::VARCHAR, %(replace_2)s::VARCHAR))) AS ts_rank_cd_1 
+E   FROM documents 
+E   WHERE documents.search_vector @@ to_tsquery('russian'::regconfig, replace(CAST(websearch_to_tsquery('russian'::regconfig, %(websearch_to_tsquery_1)s::VARCHAR) AS TEXT), %(replace_1)s::VARCHAR, %(replace_2)s::VARCHAR))]
+E   [parameters: {'websearch_to_tsquery_1': 'кэш\x00', 'replace_1': ' & ', 'replace_2': ' | '}]
+E   (Background on this error at: https://sqlalche.me/e/20/9h9h)
+_______________ test_index_is_rebuilt_from_repository_on_start ________________
+tests\test_service.py:153: in test_index_is_rebuilt_from_repository_on_start
+    assert titles(restarted, "кэш") == ["Заметка о кэше"]
+E   AssertionError: assert [] == ['Заметка о кэше']
+E     
+E     Right contains one more item: 'Заметка о кэше'
+E     Use -v to get more diff
+_____________ test_fulltext_finds_word_forms_in_every_field[body] _____________
+tests\test_storage_pg.py:162: in test_fulltext_finds_word_forms_in_every_field
+    assert stored.id in repository.fulltext_scores(query)
+E   AssertionError: assert '1c9f359a-5d0a-4e5d-890d-0b745542deb5' in {}
+E    +  where '1c9f359a-5d0a-4e5d-890d-0b745542deb5' = StoredDocument(id='1c9f359a-5d0a-4e5d-890d-0b745542deb5', version=1, title='Индексы в базе', tags=('postgresql', 'инде...oscow')), updated_at=datetime.datetime(2026, 11, 2, 16, 27, 40, 211408, tzinfo=zoneinfo.ZoneInfo(key='Europe/Moscow'))).id
+E    +  and   {} = fulltext_scores('ускорять')
+E    +    where fulltext_scores = <kb.storage.repository.SqlDocumentRepository object at 0x000001FF03BC6020>.fulltext_scores
+_______________ test_fulltext_gives_title_more_weight_than_code _______________
+tests\test_storage_pg.py:174: in test_fulltext_gives_title_more_weight_than_code
+    assert scores[in_title] > scores[in_code]
+E   KeyError: 'd58b6cde-b5a4-4f07-9c0f-ae0eccec0b04'
+________________________ test_fulltext_uses_gin_index _________________________
+tests\test_storage_pg.py:194: in test_fulltext_uses_gin_index
+    assert "ix_documents_search_vector" in "\n".join(plan)
+E   assert 'ix_documents_search_vector' in "Seq Scan on documents  (cost=0.00..13.50 rows=1 width=16)\n  Filter: (search_vector @@ '''редкоеслов'''::tsquery)"
+E    +  where "Seq Scan on documents  (cost=0.00..13.50 rows=1 width=16)\n  Filter: (search_vector @@ '''редкоеслов'''::tsquery)" = <built-in method join of str object at 0x000001FF5B854E70>(['Seq Scan on documents  (cost=0.00..13.50 rows=1 width=16)', "  Filter: (search_vector @@ '''редкоеслов'''::tsquery)"])
+E    +    where <built-in method join of str object at 0x000001FF5B854E70> = '\n'.join
+============================== warnings summary ===============================
+.venv\lib\site-packages\fastapi\testclient.py:1
+  C:\Users\User\Documents\Code\knowledge-base\.venv\lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_api.py::test_same_source_name_twice_is_a_clean_error - sqla...
+FAILED tests/test_api.py::test_null_character_in_document_is_rejected - sqlal...
+FAILED tests/test_api.py::test_null_character_in_query_does_not_break_search
+FAILED tests/test_service.py::test_index_is_rebuilt_from_repository_on_start
+FAILED tests/test_storage_pg.py::test_fulltext_finds_word_forms_in_every_field[body]
+FAILED tests/test_storage_pg.py::test_fulltext_gives_title_more_weight_than_code
+FAILED tests/test_storage_pg.py::test_fulltext_uses_gin_index - assert 'ix_do...
+7 failed, 276 passed, 1 warning in 13.64s
+[exit 1]

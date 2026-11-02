@@ -1,0 +1,50 @@
+$ python tools/bench_service.py --docs 2000
+Документов: 2000, объём: 15.5 МБ
+Сохранение в базу и индекс: 16.51 с (121 док/с)
+Построение индекса при запуске: 6.28 с
+
+Поиск без кэша, мс на запрос:
+  bm25                       медиана    15.28   p95    22.52
+  tfidf                      медиана    14.09   p95    21.07
+  hybrid                     медиана    14.89   p95    27.84
+  pgfts                      медиана    56.53   p95    76.10
+
+Поиск через Redis, мс на запрос:
+  bm25, промах кэша          медиана    77.95   p95   116.07
+  bm25, попадание в кэш      медиана     0.81   p95     0.98
+  записей в Redis: 8, память: 1.01M
+
+Частые слова, есть индекс GIN:
+  Seq Scan on documents (actual rows=1313.00 loops=1)
+    Filter: (search_vector @@ '''индекс'' | ''поиск'''::tsquery)
+    Rows Removed by Filter: 688
+    Buffers: shared hit=11424
+  Planning:
+    Buffers: shared hit=52
+  Planning Time: 9.181 ms
+  Execution Time: 29.781 ms
+
+Редкое слово, есть индекс GIN:
+  Bitmap Heap Scan on documents (actual rows=1.00 loops=1)
+    Recheck Cond: (search_vector @@ '''колоссальн'''::tsquery)
+    Heap Blocks: exact=1
+    Buffers: shared hit=10
+    ->  Bitmap Index Scan on ix_documents_search_vector (actual rows=1.00 loops=1)
+          Index Cond: (search_vector @@ '''колоссальн'''::tsquery)
+          Index Searches: 1
+          Buffers: shared hit=9
+  Planning:
+    Buffers: shared hit=1
+  Planning Time: 0.202 ms
+  Execution Time: 0.095 ms
+
+Редкое слово, индекс удалён (внутри транзакции):
+  Seq Scan on documents (actual rows=1.00 loops=1)
+    Filter: (search_vector @@ '''колоссальн'''::tsquery)
+    Rows Removed by Filter: 2000
+    Buffers: shared hit=6958
+  Planning:
+    Buffers: shared hit=6
+  Planning Time: 0.898 ms
+  Execution Time: 12.837 ms
+[exit 0]

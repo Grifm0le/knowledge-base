@@ -1,0 +1,12 @@
+$ alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0002 -> 0003, Полнотекстовый поиск по всем полям: заголовки, теги и код
+[exit 0]
+
+$ alembic check
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.autogenerate.compare.constraints] Ignoring nullable change on identity column 'documents.search_vector'
+No new upgrade operations detected.
+[exit 0]

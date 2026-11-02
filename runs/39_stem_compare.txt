@@ -1,0 +1,10 @@
+$ python stem_compare.py
+ускоряют       PostgreSQL: 'ускоря':1           Snowball в проекте: ускоря
+ускоряет       PostgreSQL: 'ускоря':1           Snowball в проекте: ускоря
+ускорять       PostgreSQL: 'ускоря':1           Snowball в проекте: ускоря
+ускорение      PostgreSQL: 'ускорен':1          Snowball в проекте: ускорен
+индексы        PostgreSQL: 'индекс':1           Snowball в проекте: индекс
+индексов       PostgreSQL: 'индекс':1           Snowball в проекте: индекс
+кэширование    PostgreSQL: 'кэширован':1        Snowball в проекте: кэширован
+кэширования    PostgreSQL: 'кэширован':1        Snowball в проекте: кэширован
+[exit 0]

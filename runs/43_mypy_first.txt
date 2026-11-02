@@ -1,0 +1,7 @@
+$ mypy
+src\kb\textproc.py:65: error: Returning Any from function declared to return "str"  [no-any-return]
+src\kb\cli.py:104: error: Item "TextIO" of "TextIO | Any" has no attribute "reconfigure"  [union-attr]
+src\kb\storage\repository.py:177: error: "Result[Any]" has no attribute "rowcount"  [attr-defined]
+src\kb\storage\repository.py:233: error: Need type annotation for "config"  [var-annotated]
+Found 4 errors in 3 files (checked 23 source files)
+[exit 1]

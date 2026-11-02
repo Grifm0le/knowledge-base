@@ -1,0 +1,6 @@
+$ ruff check src migrations
+src\kb\api\routes.py:56:101: E501 Line too long (104 > 100)
+src\kb\api\routes.py:61:101: E501 Line too long (103 > 100)
+src\kb\service.py:88:101: E501 Line too long (101 > 100)
+Found 3 errors.
+[exit 1]
