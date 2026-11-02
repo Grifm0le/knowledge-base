@@ -10,3 +10,4 @@ build/
 dist/
 .env
 data/corpus*/
+.mypy_cache/

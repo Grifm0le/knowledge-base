@@ -109,7 +109,17 @@ class SearchEngine:
             scores = scorer.score(query_terms, self._index) if query_terms else {}
         else:
             scores = dict.fromkeys(self._documents, 0.0)
+        return self._build_result(query, query_terms, scores)
 
+    def rank_scores(self, query: SearchQuery, scores: dict[str, float]) -> SearchResult:
+        """Выдача по оценкам, полученным извне, например от полнотекстового поиска базы."""
+        self._validate(query)
+        known = {doc_id: score for doc_id, score in scores.items() if doc_id in self._documents}
+        return self._build_result(query, terms(query.text), known)
+
+    def _build_result(
+        self, query: SearchQuery, query_terms: list[str], scores: dict[str, float]
+    ) -> SearchResult:
         matched = [
             doc_id for doc_id in scores if query.filters.matches(self._documents[doc_id])
         ]

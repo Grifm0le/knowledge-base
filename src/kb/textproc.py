@@ -62,7 +62,8 @@ def stem(word: str) -> str:
         return word
     stemmer = _RUSSIAN if _CYRILLIC_RE.search(word) else _ENGLISH
     with _stemmer_lock:
-        return stemmer.stemWord(word)
+        result: str = stemmer.stemWord(word)
+    return result
 
 
 def tokenize(text: str) -> Iterator[Token]:

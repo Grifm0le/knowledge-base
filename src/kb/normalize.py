@@ -21,11 +21,17 @@ def decode_document(data: bytes) -> str:
             f"Документ больше {MAX_DOCUMENT_BYTES // (1024 * 1024)} МБ: {len(data)} байт",
         )
     try:
-        return data.decode("utf-8-sig")
+        text = data.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         raise DocumentValidationError(
             "invalid_encoding", f"Документ не в UTF-8: байт {exc.start}"
         ) from exc
+    if "\x00" in text:
+        # PostgreSQL не хранит этот символ в текстовых полях, а в заметке ему неоткуда взяться.
+        raise DocumentValidationError(
+            "invalid_characters", "В документе есть нулевой символ: это не текстовый файл"
+        )
+    return text
 
 
 def normalize_text(raw: str) -> str:
