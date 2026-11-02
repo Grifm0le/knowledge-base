@@ -59,3 +59,31 @@ def test_snippet_does_not_start_in_the_middle_of_a_word():
     text = "длинноеслово " * 20 + "поиск"
     snippet = build_snippet(text, set(terms("поиск")), max_chars=60)
     assert snippet.text.lstrip("…").startswith("длинноеслово")
+
+
+def test_word_longer_than_window_does_not_break_selection():
+    long_word = "поиск" + "о" * 50
+    text = f"{long_word} индекс"
+    snippet = build_snippet(text, {*terms(long_word), *terms("индекс")}, max_chars=20)
+    assert marked(snippet)
+
+
+def test_large_document_with_many_matches_is_fast():
+    text = "поиск индекс " * 20000
+    snippet = build_snippet(text, set(terms("поиск индекс")))
+    assert len(snippet.text) <= 242
+    assert marked(snippet)
+
+
+def test_text_without_spaces_keeps_match_in_snippet():
+    text = ",".join(["слово"] * 100) + ",поиск," + ",".join(["слово"] * 100)
+    snippet = build_snippet(text, set(terms("поиск")), max_chars=60)
+    assert marked(snippet) == ["поиск"]
+
+
+def test_match_cut_by_window_is_marked_partially():
+    text = "начало " + "поиск" * 30
+    snippet = build_snippet(text, set(terms("поиск" * 30)), max_chars=30)
+    assert len(marked(snippet)) == 1
+    assert marked(snippet)[0].startswith("поиск")
+    assert snippet.text.endswith("…")

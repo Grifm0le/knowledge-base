@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections import Counter
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from html import escape
 
-from kb.textproc import tokenize
+from kb.textproc import Token, tokenize
 
 DEFAULT_SNIPPET_CHARS = 240
 _CONTEXT_CHARS = 40
@@ -39,32 +40,46 @@ def build_snippet(
     if not matches:
         return Snippet(_clip(text, 0, max_chars))
 
-    best_start = matches[0].start
-    best_distinct = 0
-    for first, anchor in enumerate(matches):
-        window_end = anchor.start + max_chars
-        distinct = {m.term for m in matches[first:] if m.end <= window_end}
-        if len(distinct) > best_distinct:
-            best_distinct = len(distinct)
-            best_start = anchor.start
-
-    start = _word_boundary(text, max(0, best_start - _CONTEXT_CHARS))
+    best_start = _best_window_start(matches, max_chars)
+    context = min(_CONTEXT_CHARS, max_chars // 4)
+    start = _word_boundary(text, max(0, best_start - context), best_start)
     end = min(len(text), start + max_chars)
     clipped = _clip(text, start, end)
     shift = 1 if start > 0 else 0
+    # Слово может не поместиться в окно целиком: тогда отмечаем его видимую часть.
     spans = tuple(
-        (m.start - start + shift, m.end - start + shift)
+        (max(m.start, start) - start + shift, min(m.end, end) - start + shift)
         for m in matches
-        if m.start >= start and m.end <= end
+        if m.start < end and m.end > start
     )
     return Snippet(clipped, spans)
 
 
-def _word_boundary(text: str, position: int) -> int:
-    """Сдвигает начало фрагмента вперёд, чтобы он не начинался с середины слова."""
+def _best_window_start(matches: Sequence[Token], max_chars: int) -> int:
+    """Начало окна с наибольшим числом разных терминов: скользящее окно за линейное время."""
+    best_start = matches[0].start
+    best_distinct = 0
+    in_window: Counter[str] = Counter()
+    right = 0
+    for left, anchor in enumerate(matches):
+        window_end = anchor.start + max_chars
+        while right < len(matches) and (right == left or matches[right].end <= window_end):
+            in_window[matches[right].term] += 1
+            right += 1
+        if len(in_window) > best_distinct:
+            best_distinct = len(in_window)
+            best_start = anchor.start
+        in_window[anchor.term] -= 1
+        if not in_window[anchor.term]:
+            del in_window[anchor.term]
+    return best_start
+
+
+def _word_boundary(text: str, position: int, limit: int) -> int:
+    """Сдвигает начало фрагмента вперёд до пробела, но не дальше первого совпадения."""
     if position == 0:
         return 0
-    space = text.find(" ", position)
+    space = text.find(" ", position, limit)
     return space + 1 if space != -1 else position
 
 

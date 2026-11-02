@@ -1,0 +1,18 @@
+$ pytest (шаг 2)
+................F....................................................... [ 45%]
+........................................................................ [ 91%]
+..............                                                           [100%]
+================================== FAILURES ===================================
+____________ test_word_longer_than_window_does_not_break_selection ____________
+tests\test_highlight.py:68: in test_word_longer_than_window_does_not_break_selection
+    assert marked(snippet)
+E   AssertionError: assert []
+E    +  where [] = marked(Snippet(text='поискооооооооооооооо…', spans=()))
+============================= slowest 3 durations =============================
+0.06s call     tests/test_highlight.py::test_large_document_with_many_matches_is_fast
+0.02s setup    tests/test_integration.py::test_relevant_document_is_first[bm25-\u0438\u043d\u0434\u0435\u043a\u0441\u044b \u0432 \u0431\u0430\u0437\u0435 \u0434\u0430\u043d\u043d\u044b\u0445-postgresql-indexes.md]
+0.02s call     tests/test_textproc.py::test_stem_gives_same_result_from_many_threads
+=========================== short test summary info ===========================
+FAILED tests/test_highlight.py::test_word_longer_than_window_does_not_break_selection
+1 failed, 157 passed in 0.72s
+[exit 1]

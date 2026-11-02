@@ -17,6 +17,7 @@ class InvertedIndex:
         self._postings: dict[str, dict[str, FieldCounts]] = {}
         self._field_lengths: dict[str, FieldCounts] = {}
         self._doc_terms: dict[str, set[str]] = {}
+        self._total_lengths: Counter[str] = Counter()
 
     def __contains__(self, doc_id: str) -> bool:
         return doc_id in self._field_lengths
@@ -43,6 +44,7 @@ class InvertedIndex:
                 doc_terms.add(term)
         self._field_lengths[doc_id] = lengths
         self._doc_terms[doc_id] = doc_terms
+        self._total_lengths.update(lengths)
 
     def remove(self, doc_id: str) -> None:
         """Удаляет документ. Термины, оставшиеся без документов, удаляются тоже."""
@@ -51,7 +53,7 @@ class InvertedIndex:
             del postings[doc_id]
             if not postings:
                 del self._postings[term]
-        self._field_lengths.pop(doc_id, None)
+        self._total_lengths.subtract(self._field_lengths.pop(doc_id, {}))
 
     def postings(self, term: str) -> Mapping[str, FieldCounts]:
         """Документы с термином и его частота по полям."""
@@ -70,8 +72,5 @@ class InvertedIndex:
         """Средняя взвешенная длина документа: нужна BM25 для нормализации."""
         if not self._field_lengths:
             return 0.0
-        total = sum(
-            sum(weights.get(name, 1.0) * length for name, length in lengths.items())
-            for lengths in self._field_lengths.values()
-        )
+        total = sum(weights.get(name, 1.0) * size for name, size in self._total_lengths.items())
         return total / len(self._field_lengths)

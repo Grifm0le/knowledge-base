@@ -1,0 +1,3 @@
+$ ruff check src tests tools
+All checks passed!
+[exit 0]

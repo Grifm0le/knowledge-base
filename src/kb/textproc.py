@@ -75,4 +75,5 @@ def tokenize(text: str) -> Iterator[Token]:
 
 def terms(text: str) -> list[str]:
     """Только термины, без позиций: для индексации и разбора запроса."""
-    return [token.term for token in tokenize(text)]
+    normalized = (normalize_word(word) for word in _WORD_RE.findall(text))
+    return [stem(word) for word in normalized if word not in STOP_WORDS]

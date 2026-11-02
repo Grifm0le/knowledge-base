@@ -70,3 +70,13 @@ def test_doc_ids_and_empty_field():
     index.add("a", {"title": "", "body": "слово"})
     assert index.doc_ids() == ["a"]
     assert index.field_lengths("a") == {"title": 0, "body": 1}
+
+
+def test_average_length_stays_correct_after_replace_and_remove():
+    index = build()
+    index.add("a", {"body": "кэш"})
+    assert index.average_weighted_length({"body": 1.0, "title": 1.0}) == pytest.approx(1.5)
+    index.remove("b")
+    assert index.average_weighted_length({"body": 1.0, "title": 1.0}) == pytest.approx(1.0)
+    index.remove("a")
+    assert index.average_weighted_length({"body": 1.0}) == 0.0

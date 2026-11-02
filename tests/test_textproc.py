@@ -58,3 +58,8 @@ def test_stem_gives_same_result_from_many_threads():
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(stem, words * 200))
     assert set(results) == {expected}
+
+
+def test_terms_and_tokenize_give_same_result():
+    text = "Быстрый поиск по базе и the searching ёлка 2026 user_name"
+    assert terms(text) == [token.term for token in tokenize(text)]

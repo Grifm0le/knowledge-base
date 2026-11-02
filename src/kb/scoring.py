@@ -106,6 +106,7 @@ class Bm25Scorer(Scorer):
     def score(self, query_terms: Sequence[str], index: InvertedIndex) -> dict[str, float]:
         doc_count = index.doc_count
         average_length = index.average_weighted_length(self.field_weights)
+        lengths: dict[str, float] = {}
         scores: dict[str, float] = {}
         for term, query_tf in Counter(query_terms).items():
             postings = index.postings(term)
@@ -115,7 +116,10 @@ class Bm25Scorer(Scorer):
             idf = math.log(1 + (doc_count - df + 0.5) / (df + 0.5))
             for doc_id, counts in postings.items():
                 tf = self.weighted_tf(counts)
-                length = self.weighted_length(index.field_lengths(doc_id))
+                length = lengths.get(doc_id)
+                if length is None:
+                    length = self.weighted_length(index.field_lengths(doc_id))
+                    lengths[doc_id] = length
                 norm = self.k1 * (1 - self.b + self.b * length / average_length)
                 weight = idf * tf * (self.k1 + 1) / (tf + norm) * query_tf
                 scores[doc_id] = scores.get(doc_id, 0.0) + weight

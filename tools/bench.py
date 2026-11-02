@@ -40,7 +40,8 @@ def load_vocabulary() -> list[str]:
         words.update(re.findall(r"[а-яёa-z]{3,}", path.read_text(encoding="utf-8").lower()))
     vocabulary = sorted(words)
     # Дополнительные формы слов: в настоящих текстах словарь больше, чем в примерах.
-    return vocabulary + [f"{word}{suffix}" for word in vocabulary for suffix in ("ами", "ого", "ing")]
+    suffixes = ("ами", "ого", "ing")
+    return vocabulary + [f"{word}{suffix}" for word in vocabulary for suffix in suffixes]
 
 
 def generate_corpus(count: int, seed: int = 42) -> list[str]:
@@ -108,7 +109,8 @@ def main() -> None:
     if args.profile == "index":
         profiler.disable()
 
-    print(f"Документов: {args.docs}, объём: {megabytes:.1f} МБ, терминов: {engine.index.term_count}")
+    terms_total = engine.index.term_count
+    print(f"Документов: {args.docs}, объём: {megabytes:.1f} МБ, терминов: {terms_total}")
     print(f"Разбор Markdown: {parse_seconds:.2f} с ({args.docs / parse_seconds:.0f} док/с)")
     print(f"Индексация: {index_seconds:.2f} с ({args.docs / index_seconds:.0f} док/с)")
 
