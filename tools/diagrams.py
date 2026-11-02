@@ -13,7 +13,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Polygon  # noqa: E402
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "docs" / "img"
@@ -80,13 +80,26 @@ def _draw_node(ax: plt.Axes, node: Node) -> None:
                 linewidth=1.2,
             )
         )
-    else:
+    elif node.kind == "start":
+        # Терминатор по ГОСТ 19.701-90: прямоугольник со скруглёнными сторонами.
+        radius = node.height / 2
         ax.add_patch(
             FancyBboxPatch(
+                (node.x - node.width / 2 + radius, node.y - node.height / 2 + radius),
+                node.width - 2 * radius,
+                node.height - 2 * radius,
+                boxstyle=f"round,pad={radius},rounding_size={radius}",
+                facecolor=FILL["start"],
+                edgecolor=EDGE,
+                linewidth=1.2,
+            )
+        )
+    else:
+        ax.add_patch(
+            Rectangle(
                 (node.x - node.width / 2, node.y - node.height / 2),
                 node.width,
                 node.height,
-                boxstyle="round,pad=0.02,rounding_size=0.12",
                 facecolor=FILL[node.kind],
                 edgecolor=EDGE,
                 linewidth=1.2,
