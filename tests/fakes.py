@@ -256,6 +256,12 @@ class InMemoryUserRepository(UserRepository):
         }
         self.tokens[token_hash] = [user_id, purpose, expires_at, False]
 
+    def find_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
+        token = self.tokens.get(token_hash)
+        if token is None or token[1] != purpose or token[3] or token[2] <= now:
+            return None
+        return token[0]
+
     def consume_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
         token = self.tokens.get(token_hash)
         if token is None or token[1] != purpose or token[3] or token[2] <= now:

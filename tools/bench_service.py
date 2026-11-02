@@ -10,15 +10,18 @@ import argparse
 import os
 import statistics
 import time
+from datetime import datetime, timezone
 
 import redis
 from bench import QUERIES, generate_corpus
 from sqlalchemy import create_engine, text
 
 from kb.cache import MemoryCache, NullCache, RedisCache, SearchCache
-from kb.search import SearchEngine, SearchQuery
+from kb.ratelimit import RateLimiter
+from kb.search import SearchQuery
 from kb.service import KnowledgeBase
 from kb.storage.repository import SqlDocumentRepository
+from kb.storage.users import SqlUserRepository
 
 QUERY_SQL = "replace(websearch_to_tsquery('russian', :text)::text, ' & ', ' | ')::tsquery"
 FULLTEXT_SQL = f"""
@@ -63,9 +66,14 @@ def main() -> None:
 
     engine = create_engine(os.environ["KB_BENCH_DATABASE_URL"])
     with engine.begin() as connection:
-        connection.execute(text("TRUNCATE documents CASCADE"))
+        connection.execute(text("TRUNCATE users CASCADE"))
     repository = SqlDocumentRepository(engine)
-    writer = KnowledgeBase(repository, SearchEngine(), SearchCache(MemoryCache(), 60))
+    users = SqlUserRepository(engine)
+    user_id = users.create("bench@example.org", "!", datetime.now(timezone.utc)).id
+    limiter = RateLimiter(MemoryCache())
+    writer = KnowledgeBase(repository, users, SearchCache(MemoryCache(), 60), limiter).workspace(
+        user_id
+    )
 
     corpus = generate_corpus(args.docs)
     started = time.perf_counter()
@@ -76,9 +84,10 @@ def main() -> None:
     print(f"Документов: {len(corpus)}, объём: {size / 1024 / 1024:.1f} МБ")
     print(f"Сохранение в базу и индекс: {elapsed:.2f} с ({len(corpus) / elapsed:.0f} док/с)")
 
-    service = KnowledgeBase(repository, SearchEngine(), SearchCache(NullCache(), 60))
+    base = KnowledgeBase(repository, users, SearchCache(NullCache(), 60), limiter)
     started = time.perf_counter()
-    service.load_index()
+    base.load_index()
+    service = base.workspace(user_id)
     print(f"Построение индекса при запуске: {time.perf_counter() - started:.2f} с")
 
     print("\nПоиск без кэша, мс на запрос:")
@@ -89,11 +98,11 @@ def main() -> None:
     if url:
         client = redis.Redis.from_url(url, decode_responses=True)
         client.flushdb()
-        cached = KnowledgeBase(
-            repository,
-            service._engine,
-            SearchCache(RedisCache(client), 300),  # noqa: SLF001
+        cached_base = KnowledgeBase(
+            repository, users, SearchCache(RedisCache(client), 300), limiter
         )
+        cached_base.load_index()
+        cached = cached_base.workspace(user_id)
         print("\nПоиск через Redis, мс на запрос:")
         print(line("bm25, промах кэша", timed_search(cached, "bm25", 1)))
         print(line("bm25, попадание в кэш", timed_search(cached, "bm25", args.rounds)))

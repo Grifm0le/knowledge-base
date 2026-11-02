@@ -11,3 +11,5 @@ dist/
 .env
 data/corpus*/
 .mypy_cache/
+deploy/certs/
+backups/

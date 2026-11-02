@@ -71,6 +71,10 @@ class UserRepository(ABC):
         """Сохраняет хэш разового токена. Прежние токены с той же целью перестают действовать."""
 
     @abstractmethod
+    def find_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
+        """Идентификатор пользователя по действующему токену. Токен при этом не погашается."""
+
+    @abstractmethod
     def consume_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
         """Погашает токен и возвращает идентификатор пользователя или None, если не подходит."""
 
@@ -154,6 +158,16 @@ class SqlUserRepository(UserRepository):
                     token_hash=token_hash, user_id=user_id, purpose=purpose, expires_at=expires_at
                 )
             )
+
+    def find_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
+        statement = select(AuthTokenRow.user_id).where(
+            AuthTokenRow.token_hash == token_hash,
+            AuthTokenRow.purpose == purpose,
+            AuthTokenRow.used_at.is_(None),
+            AuthTokenRow.expires_at > now,
+        )
+        with self._sessions() as session:
+            return session.scalar(statement)
 
     def consume_one_time_token(self, token_hash: str, purpose: str, now: datetime) -> str | None:
         # Одним запросом: два одновременных обращения не смогут использовать токен дважды.

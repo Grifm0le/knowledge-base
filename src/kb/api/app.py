@@ -7,16 +7,19 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
@@ -54,6 +57,8 @@ from kb.storage.users import SqlUserRepository, UserRepository
 
 logger = logging.getLogger(__name__)
 
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+
 ERROR_STATUS: dict[type[KnowledgeBaseError], int] = {
     DocumentValidationError: 422,
     DocumentNotFoundError: 404,
@@ -86,6 +91,7 @@ _CONTENT_SECURITY_POLICY = (
 # Страницы документации загружают файлы с внешнего адреса, поэтому правило к ним не применяется.
 _DOCS_PATHS = ("/docs", "/redoc", "/openapi.json")
 
+_REQUEST_ID_RE = re.compile(r"[\w-]{1,64}")
 _request_id: ContextVar[str] = ContextVar("request_id", default="-")
 
 
@@ -144,7 +150,9 @@ def _add_request_logging(app: FastAPI) -> None:
     async def log_request(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        request_id = request.headers.get("X-Request-ID") or uuid4().hex[:12]
+        # Заголовок присылает клиент, а значение попадает в журнал: чужие символы туда не пускаем.
+        sent = request.headers.get("X-Request-ID", "")
+        request_id = sent if _REQUEST_ID_RE.fullmatch(sent) else uuid4().hex[:12]
         token = _request_id.set(request_id)
         started = time.perf_counter()
         try:
@@ -255,4 +263,6 @@ def create_app(
     app.include_router(auth_router)
     app.include_router(public_router)
     app.include_router(router)
+    # Подключается последним: иначе корневой адрес перехватил бы методы API.
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
     return app

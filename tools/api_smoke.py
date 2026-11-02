@@ -1,16 +1,18 @@
-"""Проверка запущенного сервиса по основному сценарию: python tools/api_smoke.py [адрес].
+"""Проверка развёрнутого сервиса по сценарию: python tools/api_smoke.py [адрес] [адрес Mailpit].
 
-Импортирует заметки из samples, ищет, меняет документ, смотрит версии и удаляет его.
+Регистрирует пользователя и подтверждает адрес по письму, импортирует заметки из samples, ищет,
+меняет документ, смотрит версии и удаляет его.
 Выводит код ответа и главное из каждого ответа, поэтому вывод можно читать как протокол.
 """
 
 from __future__ import annotations
 
 import sys
-import time
+import uuid
 from pathlib import Path
 
 import httpx
+from stack_client import Mailbox, make_client, new_user
 
 SAMPLES = Path(__file__).resolve().parent.parent / "samples"
 NOTE = """---
@@ -30,8 +32,11 @@ def step(name: str, response: httpx.Response, summary: object = "") -> None:
     print(f"{name:<34} {response.status_code} кэш={cache:<4} {elapsed:7.1f} мс  {summary}")
 
 
-def main(base_url: str) -> int:
-    with httpx.Client(base_url=base_url + "/api/v1", timeout=30) as client:
+def main(base_url: str, mailpit_url: str) -> int:
+    email = f"smoke-{uuid.uuid4().hex[:8]}@example.org"
+    token = new_user(base_url, Mailbox(mailpit_url), email, "надёжная-фраза-для-проверки")
+    print(f"Пользователь зарегистрирован и вошёл по письму: {email}")
+    with make_client(base_url + "/api/v1", token) as client:
         step("Состояние", (r := client.get("/health")), r.json())
 
         files = [
@@ -116,7 +121,6 @@ def main(base_url: str) -> int:
 
 
 if __name__ == "__main__":
-    started = time.perf_counter()
-    code = main(sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000")
-    print(f"Сценарий выполнен за {time.perf_counter() - started:.2f} с")
-    raise SystemExit(code)
+    base = sys.argv[1] if len(sys.argv) > 1 else "https://127.0.0.1:8443"
+    mail = sys.argv[2] if len(sys.argv) > 2 else "http://127.0.0.1:8025"
+    raise SystemExit(main(base, mail))

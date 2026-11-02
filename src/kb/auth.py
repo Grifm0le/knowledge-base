@@ -160,11 +160,14 @@ class AuthService:
         )
 
     def reset_password(self, token: str, new_password: str) -> None:
-        user_id = self._consume(token, RESET_PASSWORD)
-        user = self._users.get(user_id)
+        # Сначала проверка без погашения: из-за слабого пароля ссылка не должна сгорать.
+        token_hash = hash_one_time_token(token)
+        owner_id = self._users.find_one_time_token(token_hash, RESET_PASSWORD, self._now())
+        user = self._users.get(owner_id) if owner_id else None
         if user is None:
-            raise OneTimeTokenError("Ссылка недействительна")
+            raise OneTimeTokenError("Ссылка недействительна, просрочена или уже использована")
         validate_new_password(new_password, user.email)
+        user_id = self._consume(token, RESET_PASSWORD)
         self._users.set_password(user_id, hash_password(new_password))
         # Письмо пришло на этот адрес, значит владелец подтвердил его заодно.
         self._users.mark_email_verified(user_id, self._now())

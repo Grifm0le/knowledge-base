@@ -84,13 +84,8 @@ def pg_engine(database_url: str) -> Iterator[Engine]:
 
 
 def make_settings(**overrides: object) -> Settings:
-    return Settings(
-        _env_file=None,
-        log_level="WARNING",
-        jwt_secret=JWT_SECRET,
-        cookie_secure=False,
-        **overrides,
-    )
+    values = {"log_level": "WARNING", "jwt_secret": JWT_SECRET, "cookie_secure": False}
+    return Settings(_env_file=None, **{**values, **overrides})
 
 
 @pytest.fixture

@@ -1,0 +1,45 @@
+# Настройка обратного прокси. Значение KB_HTTPS_PORT подставляется при запуске контейнера.
+
+# В журнал идёт только путь без строки запроса: в ней может быть текст поиска пользователя.
+log_format kb '$remote_addr [$time_local] "$request_method $uri" $status $body_bytes_sent $request_time';
+
+# Второй рубеж защиты методов входа: первый, по адресам почты, находится в самом сервисе.
+limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/s;
+
+server {
+    listen 80;
+    server_name _;
+    access_log /var/log/nginx/access.log kb;
+    return 308 https://$host:${KB_HTTPS_PORT}$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name _;
+    server_tokens off;
+    access_log /var/log/nginx/access.log kb;
+
+    ssl_certificate /etc/nginx/certs/server.crt;
+    ssl_certificate_key /etc/nginx/certs/server.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+
+    # Импорт принимает несколько файлов, размер каждого проверяет сам сервис.
+    client_max_body_size 50m;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json;
+
+    location /api/v1/auth/ {
+        limit_req zone=auth burst=20 nodelay;
+        limit_req_status 429;
+        include /etc/nginx/conf.d/proxy.inc;
+    }
+
+    location / {
+        include /etc/nginx/conf.d/proxy.inc;
+    }
+}
