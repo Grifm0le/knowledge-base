@@ -1,0 +1,31 @@
+$ python tools/bench.py --docs 2000 (до оптимизации)
+Документов: 2000, объём: 15.5 МБ, терминов: 3236
+Разбор Markdown: 2.23 с (897 док/с)
+Индексация: 105.46 с (19 док/с)
+Поиск, мс на запрос:
+  bm25    медиана   221.15   p95   265.28
+  tfidf   медиана   181.82   p95   225.38
+  hybrid  медиана   212.28   p95   275.35
+
+Профиль (index), 12 самых затратных функций:
+         176555552 function calls (176555536 primitive calls) in 105.462 seconds
+
+   Ordered by: internal time
+   List reduced from 82 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  7144934   47.142    0.000   61.158    0.000 basestemmer.py:158(find_among_b)
+   861924   12.121    0.000   72.947    0.000 russian_stemmer.py:177(_stem)
+ 61446518    5.592    0.000    5.592    0.000 {built-in method builtins.ord}
+ 26709870    5.139    0.000    5.139    0.000 {built-in method builtins.min}
+ 47129950    4.324    0.000    4.324    0.000 {built-in method builtins.len}
+  1030922    3.598    0.000  103.808    0.000 textproc.py:57(tokenize)
+   313996    2.251    0.000    2.956    0.000 basestemmer.py:102(find_among)
+   861924    1.951    0.000    4.038    0.000 russian_stemmer.py:18(__r_mark_regions)
+  2036734    1.610    0.000    1.610    0.000 basestemmer.py:68(go_out_grouping)
+   156998    1.439    0.000    1.880    0.000 english_stemmer.py:24(__r_prelude)
+  1018922    1.324    0.000   95.161    0.000 basestemmer.py:274(stemWord)
+  1020922    1.234    0.000   97.203    0.000 textproc.py:48(stem)
+
+
+[exit 0]

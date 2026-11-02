@@ -1,0 +1,31 @@
+$ python tools/bench.py --docs 2000 --rounds 3 --profile search (шаг 1)
+Документов: 2000, объём: 15.5 МБ, терминов: 3236
+Разбор Markdown: 2.27 с (880 док/с)
+Индексация: 1.31 с (1524 док/с)
+Поиск, мс на запрос:
+  bm25    медиана    24.70   p95    34.09
+  tfidf   медиана    17.76   p95    24.21
+  hybrid  медиана    32.21   p95    46.42
+
+Профиль (search), 12 самых затратных функций:
+         7497864 function calls (7401864 primitive calls) in 1.790 seconds
+
+   Ordered by: internal time
+   List reduced from 107 to 12 due to restriction <12>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   275310    0.324    0.000    0.611    0.000 textproc.py:68(tokenize)
+442338/346338    0.200    0.000    0.657    0.000 {built-in method builtins.sum}
+   958572    0.162    0.000    0.206    0.000 scoring.py:36(<genexpr>)
+  1750068    0.100    0.000    0.100    0.000 {method 'get' of 'dict' objects}
+       48    0.098    0.002    0.676    0.014 scoring.py:106(score)
+       48    0.095    0.002    0.385    0.008 scoring.py:73(score)
+   576000    0.087    0.000    0.113    0.000 index.py:74(<genexpr>)
+   404508    0.077    0.000    0.089    0.000 scoring.py:33(<genexpr>)
+   186528    0.072    0.000    0.224    0.000 scoring.py:31(weighted_tf)
+   276372    0.071    0.000    0.129    0.000 textproc.py:49(normalize_word)
+   159762    0.064    0.000    0.366    0.000 scoring.py:35(weighted_length)
+      744    0.051    0.000    0.661    0.001 highlight.py:38(<listcomp>)
+
+
+[exit 0]

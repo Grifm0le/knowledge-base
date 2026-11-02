@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 
 from kb.textproc import normalize_word, stem, terms, tokenize
@@ -47,3 +49,12 @@ def test_underscore_and_hyphen_split_words():
 def test_empty_text():
     assert terms("") == []
     assert terms("!!! ... ---") == []
+
+
+def test_stem_gives_same_result_from_many_threads():
+    words = [f"документ{suffix}" for suffix in ("", "а", "у", "ом", "е", "ы", "ов", "ами", "ах")]
+    expected = stem("документ")
+    stem.cache_clear()
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(stem, words * 200))
+    assert set(results) == {expected}

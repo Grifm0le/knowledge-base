@@ -5,14 +5,20 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
+from functools import lru_cache
+from threading import Lock
 
 import snowballstemmer
+
+STEM_CACHE_SIZE = 200_000
 
 _WORD_RE = re.compile(r"[^\W_]+")
 _CYRILLIC_RE = re.compile(r"[а-я]")
 
 _RUSSIAN = snowballstemmer.stemmer("russian")
 _ENGLISH = snowballstemmer.stemmer("english")
+# Стеммеры Snowball хранят состояние в объекте, поэтому один объект нельзя вызывать из двух потоков.
+_stemmer_lock = Lock()
 
 STOP_WORDS = frozenset(
     # Длинный список читается строкой, а не литералом на сотню строк.
@@ -45,13 +51,18 @@ def normalize_word(word: str) -> str:
     return word.casefold().replace("ё", "е")
 
 
+@lru_cache(maxsize=STEM_CACHE_SIZE)
 def stem(word: str) -> str:
-    """Основа слова. Стеммер выбирается по алфавиту, числа остаются как есть."""
+    """Основа слова. Стеммер выбирается по алфавиту, числа остаются как есть.
+
+    Слова в текстах часто повторяются, поэтому результат кэшируется: стемминг
+    занимал основную часть времени индексации.
+    """
     if word.isdigit():
         return word
-    if _CYRILLIC_RE.search(word):
-        return _RUSSIAN.stemWord(word)
-    return _ENGLISH.stemWord(word)
+    stemmer = _RUSSIAN if _CYRILLIC_RE.search(word) else _ENGLISH
+    with _stemmer_lock:
+        return stemmer.stemWord(word)
 
 
 def tokenize(text: str) -> Iterator[Token]:
