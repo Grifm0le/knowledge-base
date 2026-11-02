@@ -46,12 +46,13 @@ def one_size(count: int, rounds: int) -> dict[str, object]:
     corpus = generate_corpus(count)
     size_mb = sum(len(item.encode("utf-8")) for item in corpus) / 1024 / 1024
 
+    # Точка отсчёта памяти: исходные тексты уже в памяти, поэтому в разницу входят только
+    # разобранные документы и индекс. Именно их сервис держит в памяти во время работы.
+    before = rss_mb()
     started = time.perf_counter()
     parsed = [parse_document(item) for item in corpus]
     parse_seconds = time.perf_counter() - started
-    del corpus
 
-    before = rss_mb()
     engine = SearchEngine()
     started = time.perf_counter()
     for number, document in enumerate(parsed):
@@ -59,6 +60,7 @@ def one_size(count: int, rounds: int) -> dict[str, object]:
     index_seconds = time.perf_counter() - started
     del parsed
     after = rss_mb()
+    del corpus
 
     index = engine.index
     tokens = sum(sum(index.field_lengths(doc_id).values()) for doc_id in index.doc_ids())
@@ -98,6 +100,18 @@ def slope(xs: list[float], ys: list[float]) -> float:
     mean_x, mean_y = statistics.mean(logs_x), statistics.mean(logs_y)
     top = sum((x - mean_x) * (y - mean_y) for x, y in zip(logs_x, logs_y, strict=True))
     return top / sum((x - mean_x) ** 2 for x in logs_x)
+
+
+def line_fit(xs: list[float], ys: list[float]) -> tuple[float, float, float]:
+    """Прямая y = a + b * x методом наименьших квадратов и коэффициент детерминации R²."""
+    mean_x, mean_y = statistics.mean(xs), statistics.mean(ys)
+    b = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys, strict=True)) / sum(
+        (x - mean_x) ** 2 for x in xs
+    )
+    a = mean_y - b * mean_x
+    residual = sum((y - a - b * x) ** 2 for x, y in zip(xs, ys, strict=True))
+    total = sum((y - mean_y) ** 2 for y in ys)
+    return a, b, 1 - residual / total
 
 
 def database_scale(sizes: list[int], rounds: int) -> list[dict[str, object]]:
@@ -187,9 +201,27 @@ def main() -> int:
     print(f"Индексация от числа слов:       {slope(tokens, [row['index_s'] for row in core]):.2f}")
     memory = [row["rss_after_mb"] - row["rss_before_mb"] for row in core]
     print(f"Память индекса от числа слов:   {slope(tokens, memory):.2f}")
+    print(
+        "\nВремя поиска как прямая: постоянная часть (фрагменты выдачи) и часть от числа постингов"
+    )
+    fits = {}
     for scorer in SCORERS:
-        value = slope(postings, [row["search_ms"][scorer] for row in core])
-        print(f"Поиск {scorer:<6} от числа постингов: {value:.2f}")
+        a, b, r2 = line_fit(postings, [row["search_ms"][scorer] for row in core])
+        fits[scorer] = {"a_ms": round(a, 3), "b_us": round(b * 1000, 3), "r2": round(r2, 4)}
+        print(f"{scorer:<7} {a:6.2f} мс + {b * 1000:5.2f} мкс на постинг, R² = {r2:.3f}")
+    per_token = statistics.mean(
+        (row["rss_after_mb"] - row["rss_before_mb"]) / row["tokens"] * 1024 * 1024 for row in core
+    )
+    per_doc = statistics.mean(
+        (row["rss_after_mb"] - row["rss_before_mb"]) / row["docs"] * 1000 for row in core
+    )
+    ratio = statistics.mean(
+        (row["rss_after_mb"] - row["rss_before_mb"]) / row["size_mb"] for row in core
+    )
+    print(
+        f"\nПамять: {per_token:.0f} байт на слово, {per_doc:.0f} МБ на 1000 документов, "
+        f"в {ratio:.1f} раза больше объёма исходных текстов"
+    )
 
     database = []
     if os.environ.get("KB_BENCH_DATABASE_URL"):
@@ -211,7 +243,9 @@ def main() -> int:
         print(f"Наклон размера базы от числа документов: {size:.2f}")
 
     args.json.write_text(
-        json.dumps({"core": core, "database": database}, ensure_ascii=False, indent=1),
+        json.dumps(
+            {"core": core, "database": database, "fits": fits}, ensure_ascii=False, indent=1
+        ),
         encoding="utf-8",
     )
     return 0

@@ -7,6 +7,8 @@ requires-python = ">=3.10"
 dependencies = [
     "alembic>=1.13",
     "argon2-cffi>=25.1",
+    # Версии с исправлениями уязвимостей выходят только для новых версий Python.
+    "dnspython>=2.9; python_version >= '3.11'",
     "email-validator>=2.2",
     "fastapi>=0.115",
     "markdown-it-py>=3.0",
