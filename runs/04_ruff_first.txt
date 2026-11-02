@@ -1,0 +1,7 @@
+$ ruff check src
+src\kb\analysis.py:71:101: E501 Line too long (102 > 100)
+src\kb\normalize.py:48:101: E501 Line too long (101 > 100)
+src\kb\textproc.py:18:5: SIM905 [*] Consider using a list literal instead of `str.split`
+Found 3 errors.
+[*] 1 fixable with `--fix`.
+[exit 1]
