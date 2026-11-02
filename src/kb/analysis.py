@@ -68,7 +68,9 @@ def collect_warnings(document: ParsedDocument) -> tuple[str, ...]:
 
     counts = Counter(h.text.casefold() for h in document.headings)
     warnings.extend(
-        f"Заголовок повторяется {count} раза: {text!r}" for text, count in counts.items() if count > 1
+        f"Заголовок повторяется {count} раза: {text!r}"
+        for text, count in counts.items()
+        if count > 1
     )
     warnings.extend(f"Ссылка без адреса: {link.text!r}" for link in document.links if not link.url)
     warnings.extend(

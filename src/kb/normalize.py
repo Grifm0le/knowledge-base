@@ -45,7 +45,8 @@ def normalize_tags(value: object) -> tuple[str, ...]:
         items = list(value)
     else:
         raise DocumentValidationError(
-            "invalid_tags", f"Теги должны быть строкой или списком, получено: {type(value).__name__}"
+            "invalid_tags",
+            f"Теги должны быть строкой или списком, получено: {type(value).__name__}",
         )
     tags: dict[str, None] = {}
     for item in items:

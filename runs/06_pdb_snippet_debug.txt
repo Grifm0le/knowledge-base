@@ -1,0 +1,15 @@
+$ python -m pdb -m kb.cli search samples feature --limit 1
+> c:\users\user\documents\code\knowledge-base\src\kb\cli.py(1)<module>()
+-> """Командная строка: проверка документов, статистика и поиск по каталогу."""
+(Pdb) Breakpoint 1 at c:\users\user\documents\code\knowledge-base\src\kb\search.py:153
+(Pdb) > c:\users\user\documents\code\knowledge-base\src\kb\search.py(153)_hit()
+-> document = self._documents[doc_id]
+(Pdb) 'git-workflow.md'
+(Pdb) ['featur']
+(Pdb) > c:\users\user\documents\code\knowledge-base\src\kb\search.py(154)_hit()
+-> meta = document.metadata
+(Pdb) False
+(Pdb) True
+(Pdb) Snippet(text='Каждая задача делается в отдельной ветке, а изменения попадают в основную ветку через слияние.  Сообщение коммита объясняет, что изменилось и зачем. Один коммит содержит одно логическое изменение, поэтому его легко проверить и при необходим…', spans=())
+(Pdb) Snippet(text='git switch -c feature/search git log --oneline --graph git diff --staged ', spans=((14, 21),))
+(Pdb) 

@@ -107,6 +107,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.WARNING,
         format="%(levelname)-7s %(name)s: %(message)s",
     )
+    # На уровне DEBUG библиотека пишет сообщение на каждое правило разбора и забивает журнал.
+    logging.getLogger("markdown_it").setLevel(logging.WARNING)
     handlers = {"check": _cmd_check, "stats": _cmd_stats, "search": _cmd_search}
     try:
         return handlers[args.command](args)

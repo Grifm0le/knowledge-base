@@ -1,0 +1,26 @@
+$ pytest --cov=kb --cov-report=term-missing
+........................................................................ [ 47%]
+........................................................................ [ 94%]
+.........                                                                [100%]
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.10.11-final-0 _______________
+
+Name                  Stmts   Miss Branch BrPart  Cover   Missing
+-----------------------------------------------------------------
+src\kb\__init__.py        1      0      0      0   100%
+src\kb\analysis.py       54      0     14      0   100%
+src\kb\cli.py            81      1     12      2    97%   102->105, 121
+src\kb\errors.py          9      0      0      0   100%
+src\kb\highlight.py      48      0     10      0   100%
+src\kb\importer.py       36      0      2      0   100%
+src\kb\index.py          51      0     12      0   100%
+src\kb\models.py         34      0      0      0   100%
+src\kb\normalize.py      52      0     26      0   100%
+src\kb\parser.py         87      1     42      3    97%   65, 93->85, 102->85
+src\kb\scoring.py        93      0     22      0   100%
+src\kb\search.py        110      0     26      0   100%
+src\kb\textproc.py       30      0      8      0   100%
+-----------------------------------------------------------------
+TOTAL                   686      2    174      5    99%
+153 passed in 2.55s
+[exit 0]

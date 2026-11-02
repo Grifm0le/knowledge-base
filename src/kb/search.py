@@ -156,8 +156,18 @@ class SearchEngine:
             doc_id=doc_id,
             title=meta.title,
             score=score,
-            snippet=build_snippet(document.body, set(query_terms)),
+            snippet=_best_snippet(document, set(query_terms)),
             tags=meta.tags,
             category=meta.category,
             created=meta.created,
         )
+
+
+def _best_snippet(document: ParsedDocument, query_terms: set[str]) -> Snippet:
+    """Фрагмент из первого поля с совпадением: термин мог найтись не только в тексте."""
+    fields = document.index_fields()
+    for name in ("body", "code", "headings"):
+        snippet = build_snippet(fields[name], query_terms)
+        if snippet.spans:
+            return snippet
+    return build_snippet(document.body, query_terms)

@@ -15,6 +15,7 @@ _RUSSIAN = snowballstemmer.stemmer("russian")
 _ENGLISH = snowballstemmer.stemmer("english")
 
 STOP_WORDS = frozenset(
+    # Длинный список читается строкой, а не литералом на сотню строк.
     """
     и в во не что он на я с со как а то все она так его но да ты к у же вы за бы по только ее
     мне было вот от меня еще нет о из ему теперь когда даже ну вдруг ли если уже или ни быть был
@@ -26,7 +27,7 @@ STOP_WORDS = frozenset(
     такой им более всегда конечно всю между
     a an and are as at be but by for if in into is it no not of on or such that the their then
     there these they this to was will with
-    """.split()
+    """.split()  # noqa: SIM905
 )
 
 

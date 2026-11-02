@@ -1,0 +1,24 @@
+$ pytest (первый запуск)
+........................................................................ [ 47%]
+..................................................................FF.... [ 94%]
+.........                                                                [100%]
+================================== FAILURES ===================================
+_________________ test_snippet_shows_match_found_only_in_code _________________
+tests\test_search.py:141: in test_snippet_shows_match_found_only_in_code
+    assert "<mark>build</mark>" in hit.snippet.to_html()
+E   AssertionError: assert '<mark>build</mark>' in 'Обычный текст.'
+E    +  where 'Обычный текст.' = to_html()
+E    +    where to_html = Snippet(text='Обычный текст.', spans=()).to_html
+E    +      where Snippet(text='Обычный текст.', spans=()) = SearchHit(doc_id='a', title='Заметка', score=0.18614722335115233, snippet=Snippet(text='Обычный текст.', spans=()), tags=(), category=None, created=None).snippet
+_______________ test_snippet_shows_match_found_only_in_heading ________________
+tests\test_search.py:147: in test_snippet_shows_match_found_only_in_heading
+    assert "<mark>кэша</mark>" in hit.snippet.to_html()
+E   AssertionError: assert '<mark>кэша</mark>' in 'Обычный текст.'
+E    +  where 'Обычный текст.' = to_html()
+E    +    where to_html = Snippet(text='Обычный текст.', spans=()).to_html
+E    +      where Snippet(text='Обычный текст.', spans=()) = SearchHit(doc_id='a', title='Заметка', score=0.39556284962119864, snippet=Snippet(text='Обычный текст.', spans=()), tags=(), category=None, created=None).snippet
+=========================== short test summary info ===========================
+FAILED tests/test_search.py::test_snippet_shows_match_found_only_in_code - As...
+FAILED tests/test_search.py::test_snippet_shows_match_found_only_in_heading
+2 failed, 151 passed in 1.14s
+[exit 1]
