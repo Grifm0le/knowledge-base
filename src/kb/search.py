@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import logging
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
 from kb.errors import DocumentNotFoundError, InvalidQueryError
 from kb.highlight import Snippet, build_snippet
 from kb.index import InvertedIndex
 from kb.models import ParsedDocument
-from kb.scoring import create_scorer
+from kb.scoring import DEFAULT_FIELD_WEIGHTS, create_scorer
 from kb.textproc import terms
 
 logger = logging.getLogger(__name__)
@@ -50,6 +52,9 @@ class SearchQuery:
     sort: str = "relevance"
     limit: int = 10
     offset: int = 0
+    # Настройка весов: пары «поле, вес» и для гибридного метода пары «метод, вес».
+    field_weights: tuple[tuple[str, float], ...] = ()
+    method_weights: tuple[tuple[str, float], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,7 +107,12 @@ class SearchEngine:
     def search(self, query: SearchQuery) -> SearchResult:
         """Выполняет запрос. Без текста возвращает документы, подходящие под фильтры."""
         self._validate(query)
-        scorer = create_scorer(query.scorer)
+        params: dict[str, Any] = {}
+        if query.field_weights:
+            params["field_weights"] = dict(query.field_weights)
+        if query.method_weights and query.scorer == "hybrid":
+            params["method_weights"] = dict(query.method_weights)
+        scorer = create_scorer(query.scorer, **params)
         query_terms = terms(query.text)
 
         if query.text.strip():
@@ -116,6 +126,16 @@ class SearchEngine:
         self._validate(query)
         known = {doc_id: score for doc_id, score in scores.items() if doc_id in self._documents}
         return self._build_result(query, terms(query.text), known)
+
+    def tag_counts(self) -> Counter[str]:
+        """Сколько документов с каждым тегом: для статистики."""
+        return Counter(tag for doc in self._documents.values() for tag in doc.metadata.tags)
+
+    def category_counts(self) -> Counter[str]:
+        """Сколько документов в каждой категории: для статистики."""
+        return Counter(
+            doc.metadata.category for doc in self._documents.values() if doc.metadata.category
+        )
 
     def _build_result(
         self, query: SearchQuery, query_terms: list[str], scores: dict[str, float]
@@ -145,6 +165,24 @@ class SearchEngine:
             raise InvalidQueryError(f"limit должен быть от 1 до {MAX_LIMIT}")
         if query.offset < 0:
             raise InvalidQueryError("offset не может быть отрицательным")
+        self._validate_weights(query)
+
+    @staticmethod
+    def _validate_weights(query: SearchQuery) -> None:
+        for name, weight in query.field_weights:
+            if name not in DEFAULT_FIELD_WEIGHTS:
+                raise InvalidQueryError(f"Неизвестное поле {name!r}")
+            if weight < 0:
+                raise InvalidQueryError("Вес не может быть отрицательным")
+        if query.field_weights and not any(weight > 0 for _, weight in query.field_weights):
+            raise InvalidQueryError("Хотя бы один вес поля должен быть больше нуля")
+        for name, weight in query.method_weights:
+            if name not in ("bm25", "tfidf"):
+                raise InvalidQueryError(f"Неизвестный метод в гибридном поиске: {name!r}")
+            if weight < 0:
+                raise InvalidQueryError("Вес не может быть отрицательным")
+        if query.method_weights and not any(weight > 0 for _, weight in query.method_weights):
+            raise InvalidQueryError("Хотя бы один вес метода должен быть больше нуля")
 
     def _sort(self, doc_ids: list[str], scores: dict[str, float], order: str) -> list[str]:
         if order == "created":

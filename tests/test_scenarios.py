@@ -7,7 +7,7 @@ import fakeredis
 import pytest
 from sqlalchemy.exc import OperationalError
 
-from conftest import IMPORT_SET, SAMPLES
+from conftest import IMPORT_SET, OWNER, SAMPLES
 from fakes import BrokenRedis, InMemoryRepository
 from kb.cache import RedisCache
 
@@ -117,23 +117,23 @@ def test_s5_two_clients_edit_one_document(client):
     assert search_titles(client, document["content"].split()[-2]) == ["Заметка"]
 
 
-def test_s6_service_restart_keeps_data(client_for, repository):
+def test_s6_service_restart_keeps_data(client_for, repository, users):
     """После перезапуска индекс строится из базы, поиск и версии на месте."""
-    first = client_for(repository)
+    first = client_for(repository, users=users)
     created = first.post(f"{URL}/documents", json={"content": "# Заметка\n\nТекст о кэше."}).json()
     first.put(
         f"{URL}/documents/{created['id']}", json={"content": "# Заметка\n\nТекст об индексах."}
     )
 
-    restarted = client_for(repository)
+    restarted = client_for(repository, users=users)
     assert search_titles(restarted, "индекс") == ["Заметка"]
     assert search_titles(restarted, "кэш") == []
     assert restarted.get(f"{URL}/documents/{created['id']}").json()["version"] == 2
 
 
-def test_s7_redis_failure_does_not_stop_service(client_for, repository):
+def test_s7_redis_failure_does_not_stop_service(client_for, repository, users):
     """Redis недоступен: поиск и правка работают, состояние показывает деградацию."""
-    client = client_for(repository, RedisCache(BrokenRedis()))
+    client = client_for(repository, RedisCache(BrokenRedis()), users=users)
     created = client.post(f"{URL}/documents", json={"content": "# Заметка\n\nТекст о кэше."})
     assert created.status_code == 201
     response = client.get(f"{URL}/search", params={"q": "кэш"})
@@ -147,17 +147,18 @@ def test_s7_redis_failure_does_not_stop_service(client_for, repository):
     }
 
 
-def test_s8_redis_cache_works_through_api(client_for, repository):
+def test_s8_redis_cache_works_through_api(client_for, repository, users):
     """Весь путь через клиент Redis: кэширование и сброс поколения."""
     server = fakeredis.FakeRedis(decode_responses=True)
-    client = client_for(repository, RedisCache(server))
+    client = client_for(repository, RedisCache(server), users=users)
     client.post(f"{URL}/documents", json={"content": "# Заметка\n\nТекст о кэше."})
     params = {"q": "кэш"}
     assert client.get(f"{URL}/search", params=params).headers["X-Cache"] == "MISS"
     assert client.get(f"{URL}/search", params=params).headers["X-Cache"] == "HIT"
-    # Поколение растёт при запуске сервиса и при создании документа.
-    assert server.get("kb:search:generation") == "2"
-    assert len(server.keys("kb:search:2:*")) == 1
+    # Общее поколение растёт при запуске сервиса, поколение пользователя при создании документа.
+    assert server.get("kb:search:generation") == "1"
+    assert server.get(f"kb:search:user:{OWNER}:generation") == "1"
+    assert len(server.keys(f"kb:search:1:{OWNER}:1:*")) == 1
 
 
 def test_s9_database_failure_gives_clean_error(client_for):
@@ -167,7 +168,7 @@ def test_s9_database_failure_gives_clean_error(client_for):
         def _fail(self, *args, **kwargs):
             raise OperationalError("SELECT 1", {}, Exception("connection refused"))
 
-        get = ping = create = _fail
+        get = ping = create = access_level = _fail
 
     client = client_for(DownRepository())
     for response in (

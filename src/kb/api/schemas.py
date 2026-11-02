@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class ErrorBody(BaseModel):
@@ -18,6 +18,83 @@ class ErrorOut(BaseModel):
     """Единый формат ошибки всех методов."""
 
     error: ErrorBody
+
+
+# Настоящие правила проверяет сервис, ограничение здесь отсекает заведомо лишние данные.
+Password = Annotated[str, Field(min_length=1, max_length=1024)]
+OneTimeToken = Annotated[str, Field(min_length=1, max_length=256)]
+
+
+class RegisterIn(BaseModel):
+    email: EmailStr
+    password: Password
+    consent: bool = Field(description="Согласие на обработку адреса электронной почты")
+
+
+class VerifyEmailIn(BaseModel):
+    token: OneTimeToken
+
+
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: Password
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(description="Срок действия в секундах")
+
+
+class AcceptedOut(BaseModel):
+    message: str
+
+
+class UserOut(BaseModel):
+    """Все персональные данные, которые хранит сервис."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    email: str
+    email_verified_at: datetime | None
+    consent_at: datetime
+    created_at: datetime
+
+
+class PasswordChangeIn(BaseModel):
+    current_password: Password
+    new_password: Password
+
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    token: OneTimeToken
+    new_password: Password
+
+
+class DeleteAccountIn(BaseModel):
+    password: Password
+
+
+class ShareIn(BaseModel):
+    email: EmailStr
+    permission: Literal["read", "write"]
+
+
+class ShareOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id: str
+    email: str
+    permission: str
+
+
+class PreviewOut(BaseModel):
+    html: str = Field(description="HTML документа: вставки HTML из текста экранированы")
 
 
 class DocumentCreate(BaseModel):
@@ -47,6 +124,7 @@ class DocumentSummary(BaseModel):
     source_name: str | None
     created_at: datetime
     updated_at: datetime
+    access: str = Field(description="Уровень доступа: owner, write или read")
 
 
 class DocumentOut(DocumentSummary):
@@ -115,6 +193,13 @@ class ImportOut(BaseModel):
     failed: list[FileFailureOut]
 
 
+class NamedCountOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+    count: int
+
+
 class StatsOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -125,6 +210,8 @@ class StatsOut(BaseModel):
     indexed_terms: int
     cache_hits: int
     cache_misses: int
+    top_tags: list[NamedCountOut]
+    categories: list[NamedCountOut]
 
 
 class HealthOut(BaseModel):

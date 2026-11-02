@@ -79,11 +79,13 @@ class TfIdfScorer(Scorer):
                 continue
             idf = math.log((doc_count + 1) / (len(postings) + 1)) + 1
             for doc_id, counts in postings.items():
-                weight = math.log1p(self.weighted_tf(counts)) * idf * query_tf
+                tf = self.weighted_tf(counts)
+                if not tf:  # термин только в полях с нулевым весом: совпадением не считается
+                    continue
+                weight = math.log1p(tf) * idf * query_tf
                 scores[doc_id] = scores.get(doc_id, 0.0) + weight
         for doc_id in scores:
-            length = self.weighted_length(index.field_lengths(doc_id))
-            scores[doc_id] /= math.sqrt(length)
+            scores[doc_id] /= math.sqrt(self.weighted_length(index.field_lengths(doc_id)))
         return scores
 
 
@@ -116,6 +118,8 @@ class Bm25Scorer(Scorer):
             idf = math.log(1 + (doc_count - df + 0.5) / (df + 0.5))
             for doc_id, counts in postings.items():
                 tf = self.weighted_tf(counts)
+                if not tf:  # термин только в полях с нулевым весом: совпадением не считается
+                    continue
                 length = lengths.get(doc_id)
                 if length is None:
                     length = self.weighted_length(index.field_lengths(doc_id))

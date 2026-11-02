@@ -34,6 +34,14 @@ class Cache(ABC):
         """Увеличивает счётчик на единицу."""
 
     @abstractmethod
+    def count_hit(self, key: str, ttl_seconds: int) -> int:
+        """Увеличивает счётчик с ограниченным сроком жизни и возвращает его значение."""
+
+    @abstractmethod
+    def delete(self, key: str) -> None:
+        """Удаляет ключ."""
+
+    @abstractmethod
     def ping(self) -> bool:
         """Доступен ли кэш."""
 
@@ -48,6 +56,12 @@ class NullCache(Cache):
         pass
 
     def increment(self, key: str) -> None:
+        pass
+
+    def count_hit(self, key: str, ttl_seconds: int) -> int:
+        return 0
+
+    def delete(self, key: str) -> None:
         pass
 
     def ping(self) -> bool:
@@ -81,6 +95,21 @@ class MemoryCache(Cache):
         with self._lock:
             value, _ = self._items.get(key, ("0", None))
             self._items[key] = (str(int(value) + 1), None)
+
+    def count_hit(self, key: str, ttl_seconds: int) -> int:
+        current = self.get(key)
+        with self._lock:
+            if current is None:
+                self._items[key] = ("1", self._clock() + ttl_seconds)
+                return 1
+            _, expires_at = self._items[key]
+            value = int(current) + 1
+            self._items[key] = (str(value), expires_at)
+            return value
+
+    def delete(self, key: str) -> None:
+        with self._lock:
+            self._items.pop(key, None)
 
     def ping(self) -> bool:
         return True
@@ -122,6 +151,22 @@ class RedisCache(Cache):
         except redis.RedisError as exc:
             logger.warning("Redis недоступен при сбросе кэша: %s", exc)
 
+    def count_hit(self, key: str, ttl_seconds: int) -> int:
+        try:
+            value = int(self._client.incr(key))
+            if value == 1:
+                self._client.expire(key, ttl_seconds)
+        except redis.RedisError as exc:
+            logger.warning("Redis недоступен при подсчёте попыток: %s", exc)
+            return 0
+        return value
+
+    def delete(self, key: str) -> None:
+        try:
+            self._client.delete(key)
+        except redis.RedisError as exc:
+            logger.warning("Redis недоступен при удалении ключа: %s", exc)
+
     def ping(self) -> bool:
         try:
             return bool(self._client.ping())
@@ -130,7 +175,10 @@ class RedisCache(Cache):
 
 
 class SearchCache:
-    """Кэш выдачи. Ключ содержит номер поколения: смена поколения разом отменяет все записи."""
+    """Кэш выдачи пользователя. Смена поколения разом отменяет записи пользователя.
+
+    Общий номер меняется при запуске сервиса: данные могли измениться, пока сервис не работал.
+    """
 
     def __init__(self, cache: Cache, ttl_seconds: int) -> None:
         self._cache = cache
@@ -138,12 +186,13 @@ class SearchCache:
         self.hits = 0
         self.misses = 0
 
-    def key_for(self, params: Mapping[str, Any]) -> str:
+    def key_for(self, user_id: str, params: Mapping[str, Any]) -> str:
         """Один и тот же запрос даёт один ключ независимо от порядка параметров."""
-        generation = self._cache.get(GENERATION_KEY) or "0"
+        epoch = self._cache.get(GENERATION_KEY) or "0"
+        generation = self._cache.get(_user_generation_key(user_id)) or "0"
         canonical = json.dumps(params, sort_keys=True, ensure_ascii=False, default=str)
         digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
-        return f"kb:search:{generation}:{digest}"
+        return f"kb:search:{epoch}:{user_id}:{generation}:{digest}"
 
     def get(self, key: str) -> dict[str, Any] | None:
         value = self._cache.get(key)
@@ -157,8 +206,15 @@ class SearchCache:
     def put(self, key: str, payload: Mapping[str, Any]) -> None:
         self._cache.set(key, json.dumps(payload, ensure_ascii=False), self._ttl_seconds)
 
-    def invalidate(self) -> None:
+    def invalidate(self, user_id: str) -> None:
+        self._cache.increment(_user_generation_key(user_id))
+
+    def invalidate_all(self) -> None:
         self._cache.increment(GENERATION_KEY)
 
     def ping(self) -> bool:
         return self._cache.ping()
+
+
+def _user_generation_key(user_id: str) -> str:
+    return f"kb:search:user:{user_id}:generation"

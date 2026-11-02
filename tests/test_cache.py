@@ -81,33 +81,88 @@ def test_broken_redis_behaves_as_empty_cache(caplog):
 
 def test_same_query_gives_same_key_regardless_of_order():
     search_cache = SearchCache(MemoryCache(), 60)
-    first = search_cache.key_for({"text": "кэш", "limit": 10})
-    second = search_cache.key_for({"limit": 10, "text": "кэш"})
+    first = search_cache.key_for("u1", {"text": "кэш", "limit": 10})
+    second = search_cache.key_for("u1", {"limit": 10, "text": "кэш"})
     assert first == second
-    assert first.startswith("kb:search:0:")
+    assert first.startswith("kb:search:0:u1:0:")
 
 
 def test_different_queries_give_different_keys():
     search_cache = SearchCache(MemoryCache(), 60)
-    assert search_cache.key_for({"text": "кэш"}) != search_cache.key_for({"text": "кеш"})
+    assert search_cache.key_for("u1", {"text": "кэш"}) != search_cache.key_for(
+        "u1", {"text": "кеш"}
+    )
+
+
+def test_same_query_of_different_users_gives_different_keys():
+    search_cache = SearchCache(MemoryCache(), 60)
+    assert search_cache.key_for("u1", {"text": "кэш"}) != search_cache.key_for(
+        "u2", {"text": "кэш"}
+    )
 
 
 def test_payload_round_trip_counts_hits_and_misses():
     search_cache = SearchCache(MemoryCache(), 60)
-    key = search_cache.key_for({"text": "кэш"})
+    key = search_cache.key_for("u1", {"text": "кэш"})
     assert search_cache.get(key) is None
     search_cache.put(key, {"total": 1, "title": "Кэш"})
     assert search_cache.get(key) == {"total": 1, "title": "Кэш"}
     assert (search_cache.hits, search_cache.misses) == (1, 1)
 
 
-def test_invalidate_changes_generation_and_hides_old_entries():
+def test_invalidate_hides_entries_of_this_user_only():
+    search_cache = SearchCache(MemoryCache(), 60)
+    mine = search_cache.key_for("u1", {"text": "кэш"})
+    theirs = search_cache.key_for("u2", {"text": "кэш"})
+    search_cache.put(mine, {"total": 1})
+    search_cache.put(theirs, {"total": 2})
+    search_cache.invalidate("u1")
+    assert search_cache.key_for("u1", {"text": "кэш"}) != mine
+    assert search_cache.key_for("u2", {"text": "кэш"}) == theirs
+
+
+def test_invalidate_all_changes_common_generation():
     storage = MemoryCache()
     search_cache = SearchCache(storage, 60)
-    old_key = search_cache.key_for({"text": "кэш"})
-    search_cache.put(old_key, {"total": 1})
-    search_cache.invalidate()
-    new_key = search_cache.key_for({"text": "кэш"})
-    assert new_key != old_key
-    assert search_cache.get(new_key) is None
+    old_key = search_cache.key_for("u1", {"text": "кэш"})
+    search_cache.invalidate_all()
+    assert search_cache.key_for("u1", {"text": "кэш"}) != old_key
     assert storage.get(GENERATION_KEY) == "1"
+
+
+def test_count_hit_counts_and_can_be_reset(cache):
+    assert cache.count_hit("попытки", 60) == 1
+    assert cache.count_hit("попытки", 60) == 2
+    cache.delete("попытки")
+    assert cache.get("попытки") is None
+    assert cache.count_hit("попытки", 60) == 1
+
+
+def test_memory_count_hit_expires():
+    clock = Clock()
+    cache = MemoryCache(clock)
+    cache.count_hit("попытки", 10)
+    cache.count_hit("попытки", 10)
+    clock.now += 10
+    assert cache.count_hit("попытки", 10) == 1
+
+
+def test_redis_count_hit_sets_ttl_once():
+    client = fakeredis.FakeRedis(decode_responses=True)
+    cache = RedisCache(client)
+    cache.count_hit("попытки", 60)
+    client.expire("попытки", 30)
+    cache.count_hit("попытки", 60)
+    assert 0 < client.ttl("попытки") <= 30
+
+
+def test_broken_redis_does_not_count_attempts():
+    cache = RedisCache(BrokenRedis())
+    assert cache.count_hit("попытки", 60) == 0
+    cache.delete("попытки")
+
+
+def test_null_cache_does_not_count():
+    cache = NullCache()
+    assert cache.count_hit("попытки", 60) == 0
+    cache.delete("попытки")

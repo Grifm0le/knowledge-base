@@ -21,6 +21,8 @@ _FRONT_MATTER_RE = re.compile(r"\A---\n(.*?)^---[ \t]*(?:\n|\Z)", re.DOTALL | re
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
 
 _markdown = MarkdownIt("commonmark").enable("table")
+# Для показа пользователю: HTML из текста экранируется, ссылки вида javascript: отбрасываются.
+_safe_markdown = MarkdownIt("commonmark", {"html": False}).enable("table")
 
 
 def split_front_matter(text: str) -> tuple[dict[str, object], str, int]:
@@ -130,3 +132,9 @@ def parse_document(raw: str, *, fallback_title: str | None = None) -> ParsedDocu
         code_blocks=tuple(code_blocks),
         links=tuple(links),
     )
+
+
+def render_html(text: str) -> str:
+    """Безопасный HTML документа без шапки: сервис показывает его в браузере."""
+    _, body, _ = split_front_matter(normalize_text(text))
+    return str(_safe_markdown.render(body))
