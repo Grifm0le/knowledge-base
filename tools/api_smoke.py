@@ -66,6 +66,15 @@ def main(base_url: str, mailpit_url: str) -> int:
                 name, r, f"найдено {r.json()['total']}, первый: {hits[0]['title'] if hits else '-'}"
             )
 
+        for name, params in (
+            ("Веса по умолчанию", {}),
+            ("Вес кода 50", {"w_code": 50}),
+            ("Вес текста 0", {"w_body": 0}),
+            ("Гибрид, только TF-IDF", {"scorer": "hybrid", "hybrid_bm25": 0, "hybrid_tfidf": 1}),
+        ):
+            r = client.get("/search", params={"q": "индексы для поиска", **params})
+            step(name, r, ", ".join(hit["title"] for hit in r.json()["hits"][:3]))
+
         r = client.post("/documents", json={"content": NOTE})
         doc_id = r.json()["id"]
         step("Создание документа", r, f"версия {r.json()['version']}")

@@ -142,6 +142,7 @@ python tools/bench_scale.py
 python tools/ui_smoke.py
 python tools/api_smoke.py
 python tools/security_smoke.py
+python tools/ops_smoke.py
 python tools/bench_load.py
 ```
 
