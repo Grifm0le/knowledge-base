@@ -37,17 +37,17 @@ class DockerStats(threading.Thread):
     def __init__(self, command: str) -> None:
         super().__init__(daemon=True)
         self._command = shlex.split(command)
-        self._stop = threading.Event()
+        self._finished = threading.Event()
         self.samples: dict[str, list[tuple[float, float]]] = {}
 
     def run(self) -> None:
-        while not self._stop.is_set():
+        while not self._finished.is_set():
             for name, cpu, memory in read_stats(self._command):
                 self.samples.setdefault(name, []).append((cpu, memory))
-            self._stop.wait(1)
+            self._finished.wait(1)
 
     def stop(self) -> dict[str, dict[str, float]]:
-        self._stop.set()
+        self._finished.set()
         self.join(timeout=30)
         return {
             name: {
@@ -156,10 +156,15 @@ def main() -> int:
     parser.add_argument("--clients", type=int, nargs="+", default=[1, 2, 4, 8, 16])
     parser.add_argument("--docker", default="docker", help="команда запуска docker")
     parser.add_argument("--json", type=Path, default=Path("runs/bench_load.json"))
+    parser.add_argument("--write-only", action="store_true", help="только время сохранения")
     args = parser.parse_args()
 
     email = f"load-{uuid.uuid4().hex[:8]}@example.org"
     token = new_user(args.base, Mailbox(args.mailpit), email, PASSWORD)
+    if args.write_only:
+        write = write_latency(args.base, token, 100)
+        print(f"Сохранение новой версии: p50 {write['p50_ms']} мс, p95 {write['p95_ms']} мс")
+        return 0
     command = shlex.split(args.docker)
 
     idle = read_stats(command)
@@ -208,9 +213,7 @@ def main() -> int:
             )
 
     write = write_latency(args.base, token, 100)
-    print(
-        f"\nСохранение новой версии через Redis: p50 {write['p50_ms']} мс, p95 {write['p95_ms']} мс"
-    )
+    print(f"\nСохранение новой версии: p50 {write['p50_ms']} мс, p95 {write['p95_ms']} мс")
 
     args.json.write_text(
         json.dumps(

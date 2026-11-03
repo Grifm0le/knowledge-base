@@ -26,14 +26,12 @@ def architecture() -> None:
     w = 4.6
     y = 5.6
     nodes = [
-        Node(
-            "client", 9.8, 11.6, "Клиенты: Swagger UI, curl, tools/api_smoke.py", "ext", 19.4, 0.95
-        ),
+        Node("client", 9.8, 11.6, "Клиенты: веб-интерфейс, Swagger UI, curl", "ext", 19.4, 0.95),
         Node(
             "api",
             9.8,
             9.8,
-            "REST API, пакет kb.api: методы, схемы, ошибки, журнал запросов (FastAPI, uvicorn)",
+            "REST API, пакет kb.api: методы, схемы, ошибки, журнал, проверка токена",
             width=19.4,
             height=0.95,
         ),
@@ -41,7 +39,7 @@ def architecture() -> None:
             "service",
             9.8,
             8.0,
-            "Сервис KnowledgeBase: сохранение, индекс, кэш, версии, импорт",
+            "KnowledgeBase и Workspace: документы пользователя. AuthService: вход и токены",
             width=19.4,
             height=0.95,
         ),
@@ -54,18 +52,36 @@ def architecture() -> None:
             width=w,
             height=1.9,
         ),
-        Node("cache", 12.1, y, "Кэш выдачи\nSearchCache, Cache,\nRedisCache", width=w, height=1.9),
+        Node(
+            "cache",
+            12.1,
+            y,
+            "Кэш и лимиты\nSearchCache, RateLimiter,\nRedisCache",
+            width=w,
+            height=1.9,
+        ),
         Node(
             "repo",
             17.0,
             y,
-            "Хранилище\nDocumentRepository,\nSqlDocumentRepository",
+            "Хранилище\nDocumentRepository,\nUserRepository",
             width=w,
             height=1.9,
         ),
-        Node("memory", 7.2, 2.5, "Обратный индекс\nв памяти процесса", width=w, height=1.3),
-        Node("redis", 12.1, 2.5, "Redis\nзаписи с TTL и\nномер поколения", "ext", w, 1.5),
-        Node("pg", 17.0, 2.5, "PostgreSQL\ndocuments,\ndocument_versions", "ext", w, 1.5),
+        Node(
+            "memory",
+            7.2,
+            2.5,
+            "Индекс каждого\nпользователя\nв памяти процесса",
+            width=w,
+            height=1.3,
+        ),
+        Node(
+            "redis", 12.1, 2.5, "Redis\nзаписи с TTL, поколения,\nсчётчики попыток", "ext", w, 1.5
+        ),
+        Node(
+            "pg", 17.0, 2.5, "PostgreSQL\nдокументы, версии,\nпользователи, доступ", "ext", w, 1.5
+        ),
     ]
     edges = [
         ("client", "api", "HTTP, JSON"),
@@ -407,6 +423,8 @@ def classes() -> None:
     cache_path = SRC / "cache.py"
     scoring_path = SRC / "scoring.py"
     service = class_members(SRC / "service.py", "KnowledgeBase")
+    workspace = class_members(SRC / "service.py", "Workspace")
+    indexes = class_members(SRC / "service.py", "SearchIndexes")
     repo = class_members(repo_path, "DocumentRepository")
     sql = class_members(repo_path, "SqlDocumentRepository")
     engine = class_members(SRC / "search.py", "SearchEngine")
@@ -421,9 +439,11 @@ def classes() -> None:
     b = Box("DocumentRepository", column2, top, width, repo.fields, repo.methods, abstract=True)
     private = [m for m in sql.methods if m.startswith("_")]
     c = Box("SqlDocumentRepository", column2, b.bottom - 1.0, width, sql.fields, private)
-    i = Box("SearchEngine", column3, top, width, engine.fields, engine.methods)
+    w = Box("Workspace", 0, a.bottom - 1.0, width, workspace.fields, workspace.methods)
+    i = Box("SearchIndexes", column3, top, width, indexes.fields, indexes.methods)
+    j = Box("SearchEngine", column3, i.bottom - 1.0, width, engine.fields, engine.methods)
     d = Box(
-        "SearchCache", column3, i.bottom - 1.0, width, search_cache.fields, search_cache.methods
+        "SearchCache", column3, j.bottom - 1.0, width, search_cache.fields, search_cache.methods
     )
     e = Box("Cache", column3, d.bottom - 1.0, width, [], cache.methods, abstract=True)
     cache_children = e.bottom - 1.0
@@ -434,7 +454,7 @@ def classes() -> None:
     s = Box(
         "Scorer",
         4.0,
-        min(a.bottom, c.bottom) - 1.2,
+        min(w.bottom, c.bottom) - 1.2,
         5.8,
         scorer.fields,
         scorer.methods,
@@ -448,7 +468,7 @@ def classes() -> None:
             ("HybridScorer", 9.4, class_members(scoring_path, "HybridScorer")),
         )
     ]
-    boxes = [a, b, c, d, e, f, g, h, i, s, *scorers]
+    boxes = [a, b, c, d, e, f, g, h, i, j, w, s, *scorers]
 
     level1, level2 = top + 0.75, top + 1.5
     bottom = min(box.bottom for box in boxes) - 0.3
@@ -465,6 +485,10 @@ def classes() -> None:
     for child in scorers:
         _inherits(ax, child, s)
     _uses(ax, (a.x + a.width, top - 1.2), (b.x, top - 1.2), "_repository")
+    _uses(ax, (a.center, a.bottom), (w.center, w.top), "")
+    ax.text(a.center + 0.15, (a.bottom + w.top) / 2, "workspace()", va="center", fontsize=12)
+    _uses(ax, (i.center, i.bottom), (j.center, j.top), "")
+    ax.text(i.center + 0.15, (i.bottom + j.top) / 2, "_engines", va="center", fontsize=12)
     _uses(ax, (d.center, d.bottom), (e.center, e.top), "")
     ax.text(d.center + 0.15, (d.bottom + e.top) / 2, "_cache", va="center", fontsize=12)
 
@@ -482,7 +506,7 @@ def classes() -> None:
     ax.plot([start_x, start_x, i.center], [top, level2, level2], color=EDGE, linewidth=1.3)
     _uses(ax, (i.center, level2), (i.center, top), "")
     ax.text(
-        (start_x + i.center) / 2, level2 + 0.08, "_engine", ha="center", va="bottom", fontsize=12
+        (start_x + i.center) / 2, level2 + 0.08, "_indexes", ha="center", va="bottom", fontsize=12
     )
 
     ax.set_xlim(-0.3, right)
@@ -515,15 +539,28 @@ def er_diagram() -> None:
             result.append(f"{column.name}: {sql_type}{suffix}")
         return result
 
-    documents = rows("documents")
-    versions = rows("document_versions")
-    top = 10.0
-    boxes["documents"] = Box("documents", 0, top, 9.5, documents, [])
-    boxes["versions"] = Box("document_versions", 12.0, top, 9.5, versions, [])
+    top, width, gap = 10.0, 9.5, 1.2
+    left, column2 = 0.0, 12.0
+    boxes["users"] = Box("users", left, top, width, rows("users"), [])
+    boxes["tokens"] = Box(
+        "auth_tokens", left, boxes["users"].bottom - gap, width, rows("auth_tokens"), []
+    )
+    boxes["shares"] = Box(
+        "document_shares", left, boxes["tokens"].bottom - gap, width, rows("document_shares"), []
+    )
+    boxes["documents"] = Box("documents", column2, top, width, rows("documents"), [])
+    boxes["versions"] = Box(
+        "document_versions",
+        column2,
+        boxes["documents"].bottom - gap,
+        width,
+        rows("document_versions"),
+        [],
+    )
     bottom = min(box.bottom for box in boxes.values()) - 0.3
     right = 21.8
     fig = plt.figure(
-        figsize=((right + 0.3) * INCHES_PER_UNIT, (top + 0.3 - bottom) * INCHES_PER_UNIT)
+        figsize=((right + 1.2) * INCHES_PER_UNIT, (top + 0.3 - bottom) * INCHES_PER_UNIT)
     )
     ax = fig.add_axes((0, 0, 1, 1))
     for box in boxes.values():
@@ -561,10 +598,45 @@ def er_diagram() -> None:
         for row in box.fields:
             ax.text(box.x + 0.2, y, row, fontsize=13, va="center")
             y -= LINE
-    ax.plot([9.5, 12.0], [top - 1.2, top - 1.2], color=EDGE, linewidth=1.3)
-    ax.text(9.7, top - 1.1, "1", fontsize=13, va="bottom")
-    ax.text(11.8, top - 1.1, "N", fontsize=13, va="bottom", ha="right")
-    ax.set_xlim(-0.3, right)
+    users, tokens, shares = boxes["users"], boxes["tokens"], boxes["shares"]
+    documents, versions = boxes["documents"], boxes["versions"]
+
+    def link(xs: list[float], ys: list[float], one: tuple, many: tuple) -> None:
+        ax.plot(xs, ys, color=EDGE, linewidth=1.3)
+        ax.text(*one, "1", fontsize=13, va="bottom")
+        ax.text(*many, "N", fontsize=13, va="bottom", ha="right")
+
+    link([9.5, 12.0], [top - 1.2, top - 1.2], (9.7, top - 1.1), (11.8, top - 1.1))
+    link(
+        [users.center, users.center],
+        [users.bottom, tokens.top],
+        (users.center + 0.15, users.bottom - 0.45),
+        (users.center - 0.15, tokens.top + 0.05),
+    )
+    link(
+        [documents.center, documents.center],
+        [documents.bottom, versions.top],
+        (documents.center + 0.15, documents.bottom - 0.45),
+        (documents.center - 0.15, versions.top + 0.05),
+    )
+    # Строка доступа связывает пользователя и документ: линии идут в обход соседних таблиц.
+    side_y = users.bottom + 0.5
+    shares_y = shares.top - 1.2
+    link(
+        [left, -0.6, -0.6, left],
+        [side_y, side_y, shares_y, shares_y],
+        (-0.5, side_y + 0.05),
+        (-0.1, shares_y + 0.05),
+    )
+    gap_x = 10.75
+    doc_y = documents.bottom + 0.5
+    link(
+        [column2, gap_x, gap_x, 9.5],
+        [doc_y, doc_y, shares_y, shares_y],
+        (11.3, doc_y + 0.05),
+        (10.2, shares_y + 0.05),
+    )
+    ax.set_xlim(-0.9, right + 0.3)
     ax.set_ylim(bottom, top + 0.3)
     ax.axis("off")
     fig.savefig(OUT / "er.png", dpi=170, facecolor="white")

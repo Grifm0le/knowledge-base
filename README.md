@@ -97,12 +97,12 @@ created: 2026-09-14
 ```python
 from kb.scoring import Scorer, register_scorer
 
+
 @register_scorer
 class MyScorer(Scorer):
     name = "my-method"
 
-    def score(self, query_terms, index):
-        ...
+    def score(self, query_terms, index): ...
 ```
 
 ## Структура

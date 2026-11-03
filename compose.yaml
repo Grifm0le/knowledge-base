@@ -4,9 +4,6 @@ name: knowledge-base
 
 x-app: &app
   image: knowledge-base:0.2.0
-  build:
-    context: .
-    target: runtime
   env_file: .env
   environment:
     KB_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -64,8 +61,10 @@ services:
     networks:
       - backend
 
+  # Образ тот же, что у app: его собирает служба app, скачивать его неоткуда.
   migrate:
     <<: *app
+    pull_policy: never
     command: ["alembic", "upgrade", "head"]
     restart: "no"
     depends_on:
@@ -76,6 +75,9 @@ services:
 
   app:
     <<: *app
+    build:
+      context: .
+      target: runtime
     restart: unless-stopped
     depends_on:
       migrate:

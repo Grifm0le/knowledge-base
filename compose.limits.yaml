@@ -1,0 +1,15 @@
+# Минимальная конфигурация, на которой проверен сервис: 2 ядра и 920 МБ памяти на все службы.
+# Запуск: docker compose -f compose.yaml -f compose.limits.yaml up -d
+services:
+  db:
+    cpus: 0.5
+    mem_limit: 256m
+  redis:
+    cpus: 0.25
+    mem_limit: 150m
+  app:
+    cpus: 1.0
+    mem_limit: 450m
+  proxy:
+    cpus: 0.25
+    mem_limit: 64m

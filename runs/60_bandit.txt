@@ -1,4 +1,5 @@
-Run started:2026-11-02 15:35:51.099460+00:00
+$ bandit -r src -q
+Run started:2026-11-03 03:27:23.763466+00:00
 
 Test results:
 >> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'reset_password'
@@ -29,3 +30,4 @@ Run metrics:
 		Medium: 1
 		High: 0
 Files skipped (0):
+[exit 1]

@@ -1,0 +1,218 @@
+{
+ "docs": 2000,
+ "size_mb": 15.5,
+ "upload_seconds": 18.7,
+ "idle": [
+  {
+   "name": "knowledge-base-proxy-1",
+   "cpu": 0.0,
+   "memory_mb": 13.4
+  },
+  {
+   "name": "knowledge-base-app-1",
+   "cpu": 0.12,
+   "memory_mb": 84.96
+  },
+  {
+   "name": "knowledge-base-db-1",
+   "cpu": 0.04,
+   "memory_mb": 39.84
+  },
+  {
+   "name": "knowledge-base-redis-1",
+   "cpu": 0.13,
+   "memory_mb": 5.793
+  },
+  {
+   "name": "knowledge-base-mailpit-1",
+   "cpu": 0.0,
+   "memory_mb": 10.76
+  }
+ ],
+ "upload_stats": {
+  "knowledge-base-proxy-1": {
+   "cpu_mean": 0.6,
+   "cpu_max": 1.3,
+   "memory_max_mb": 14.1
+  },
+  "knowledge-base-app-1": {
+   "cpu_mean": 69.2,
+   "cpu_max": 72.9,
+   "memory_max_mb": 250.5
+  },
+  "knowledge-base-db-1": {
+   "cpu_mean": 23.2,
+   "cpu_max": 28.2,
+   "memory_max_mb": 75.1
+  },
+  "knowledge-base-redis-1": {
+   "cpu_mean": 1.3,
+   "cpu_max": 3.1,
+   "memory_max_mb": 6.4
+  },
+  "knowledge-base-mailpit-1": {
+   "cpu_mean": 0.0,
+   "cpu_max": 0.0,
+   "memory_max_mb": 10.8
+  }
+ },
+ "results": {
+  "bm25, новые запросы (минуя кэш)": [
+   {
+    "clients": 1,
+    "requests": 927,
+    "rps": 61.8,
+    "p50_ms": 15.5,
+    "p95_ms": 20.2
+   },
+   {
+    "clients": 4,
+    "requests": 1113,
+    "rps": 74.0,
+    "p50_ms": 53.5,
+    "p95_ms": 70.1
+   },
+   {
+    "clients": 16,
+    "requests": 1063,
+    "rps": 70.0,
+    "p50_ms": 226.5,
+    "p95_ms": 287.6
+   }
+  ],
+  "pgfts, новые запросы (минуя кэш)": [
+   {
+    "clients": 1,
+    "requests": 468,
+    "rps": 31.2,
+    "p50_ms": 29.9,
+    "p95_ms": 41.2
+   },
+   {
+    "clients": 4,
+    "requests": 992,
+    "rps": 66.2,
+    "p50_ms": 62.9,
+    "p95_ms": 117.3
+   },
+   {
+    "clients": 16,
+    "requests": 788,
+    "rps": 51.5,
+    "p50_ms": 300.6,
+    "p95_ms": 622.0
+   }
+  ],
+  "bm25, повторные запросы (из кэша)": [
+   {
+    "clients": 1,
+    "requests": 2728,
+    "rps": 181.9,
+    "p50_ms": 5.3,
+    "p95_ms": 6.7
+   },
+   {
+    "clients": 4,
+    "requests": 2698,
+    "rps": 179.7,
+    "p50_ms": 19.3,
+    "p95_ms": 36.6
+   },
+   {
+    "clients": 16,
+    "requests": 2309,
+    "rps": 153.4,
+    "p50_ms": 102.3,
+    "p95_ms": 138.3
+   }
+  ]
+ },
+ "load_stats": {
+  "bm25, новые запросы (минуя кэш)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 3.1,
+    "cpu_max": 6.3,
+    "memory_max_mb": 18.9
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 88.7,
+    "cpu_max": 99.8,
+    "memory_max_mb": 264.6
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 4.3,
+    "cpu_max": 10.7,
+    "memory_max_mb": 82.3
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 1.8,
+    "cpu_max": 3.8,
+    "memory_max_mb": 23.9
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.2,
+    "cpu_max": 2.9,
+    "memory_max_mb": 10.8
+   }
+  },
+  "pgfts, новые запросы (минуя кэш)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 2.1,
+    "cpu_max": 3.5,
+    "memory_max_mb": 19.0
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 72.6,
+    "cpu_max": 93.1,
+    "memory_max_mb": 284.0
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 45.8,
+    "cpu_max": 53.4,
+    "memory_max_mb": 109.3
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 1.6,
+    "cpu_max": 4.0,
+    "memory_max_mb": 33.5
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.2,
+    "cpu_max": 2.7,
+    "memory_max_mb": 10.8
+   }
+  },
+  "bm25, повторные запросы (из кэша)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 7.0,
+    "cpu_max": 8.3,
+    "memory_max_mb": 20.3
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 89.3,
+    "cpu_max": 100.6,
+    "memory_max_mb": 285.1
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 11.1,
+    "cpu_max": 21.7,
+    "memory_max_mb": 85.3
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 2.3,
+    "cpu_max": 3.8,
+    "memory_max_mb": 33.8
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.0,
+    "cpu_max": 0.0,
+    "memory_max_mb": 10.8
+   }
+  }
+ },
+ "write": {
+  "rounds": 100,
+  "p50_ms": 55.4,
+  "p95_ms": 57.5
+ }
+}

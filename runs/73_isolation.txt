@@ -1,0 +1,21 @@
+$ docker run --rm --network knowledge-base_frontend knowledge-base:0.2.0 python -c <проба соединений>
+db:5432 недоступен (gaierror)
+redis:6379 недоступен (gaierror)
+app:8000 доступен
+1.1.1.1:443 доступен
+
+$ docker run --rm --network knowledge-base_backend knowledge-base:0.2.0 python -c <проба соединений>
+db:5432 доступен
+redis:6379 доступен
+app:8000 доступен
+1.1.1.1:443 недоступен (OSError)
+
+$ docker compose exec app id
+uid=10001(kb) gid=999(kb) groups=999(kb)
+
+$ docker compose exec app touch /app/x  # файловая система только для чтения
+touch: cannot touch '/app/x': Read-only file system
+[exit 1]
+
+$ docker inspect app: CapDrop, ReadonlyRootfs, SecurityOpt
+CapDrop=[ALL] ReadonlyRootfs=true SecurityOpt=[no-new-privileges:true]

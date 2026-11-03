@@ -1,4 +1,4 @@
-"""Общая часть проверок запущенного сервиса: клиент, письма из Mailpit и вход пользователя."""
+"""Общая часть проверок развёрнутого сервиса: клиент, письма из Mailpit и вход пользователя."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import time
 import httpx
 
 API = "/api/v1"
+LINK = re.compile(r"https?://\S+token=[\w-]+")
 TOKEN_IN_LINK = re.compile(r"token=([\w-]+)")
 
 
@@ -17,39 +18,33 @@ class Mailbox:
     def __init__(self, url: str) -> None:
         self._client = httpx.Client(base_url=url, timeout=10)
 
-    def last_token(self, to: str, timeout: float = 15) -> str:
-        """Разовый токен из последнего письма на адрес. Письмо уходит уже после ответа сервиса."""
-        deadline = time.monotonic() + timeout
-        seen = self._newest_id(to)
-        while time.monotonic() < deadline:
-            current = self._newest_id(to)
-            if current is not None and (seen is None or current != seen):
-                seen = current
-            if current is not None:
-                text = self._client.get(f"/api/v1/message/{current}").json()["Text"]
-                match = TOKEN_IN_LINK.search(text)
-                if match:
-                    return match.group(1)
-            time.sleep(0.2)
-        raise TimeoutError(f"Нет письма с токеном для {to}")
-
-    def wait_new_token(self, to: str, previous: str, timeout: float = 15) -> str:
-        deadline = time.monotonic() + timeout
-        while time.monotonic() < deadline:
-            token = self.last_token(to)
-            if token != previous:
-                return token
-            time.sleep(0.2)
-        raise TimeoutError(f"Нет нового письма для {to}")
-
     def count(self, to: str) -> int:
         response = self._client.get("/api/v1/search", params={"query": f"to:{to}"})
         return int(response.json()["messages_count"])
 
-    def _newest_id(self, to: str) -> str | None:
-        response = self._client.get("/api/v1/search", params={"query": f"to:{to}", "limit": 1})
-        messages = response.json()["messages"]
-        return messages[0]["ID"] if messages else None
+    def last_link(self, to: str, expected: int = 1, timeout: float = 20) -> str:
+        """Ссылка из последнего письма. Письмо уходит после ответа сервиса, поэтому его ждём.
+
+        expected: сколько писем на этот адрес должно быть к этому моменту, включая нужное.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self.count(to) >= expected:
+                response = self._client.get(
+                    "/api/v1/search", params={"query": f"to:{to}", "limit": 1}
+                )
+                newest = response.json()["messages"][0]["ID"]
+                text = self._client.get(f"/api/v1/message/{newest}").json()["Text"]
+                match = LINK.search(text)
+                if match:
+                    return match.group(0)
+            time.sleep(0.2)
+        raise TimeoutError(f"Нет письма со ссылкой для {to}")
+
+    def last_token(self, to: str, expected: int = 1, timeout: float = 20) -> str:
+        match = TOKEN_IN_LINK.search(self.last_link(to, expected, timeout))
+        assert match is not None
+        return match.group(1)
 
 
 def make_client(base_url: str, token: str | None = None) -> httpx.Client:

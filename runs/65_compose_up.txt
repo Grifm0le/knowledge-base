@@ -1,0 +1,84 @@
+$ sh tools/init_env.sh
+.env уже существует, оставляю без изменений
+
+$ sh tools/make_cert.sh  # уже выполнено при первом запуске
+server.crt
+server.key
+
+$ docker compose --profile demo up -d --wait
+ Network knowledge-base_frontend  Creating
+ Network knowledge-base_frontend  Created
+ Network knowledge-base_backend  Creating
+ Network knowledge-base_backend  Created
+ Volume knowledge-base_db_data  Creating
+ Volume knowledge-base_db_data  Created
+ Container knowledge-base-redis-1  Creating
+ Container knowledge-base-db-1  Creating
+ Container knowledge-base-mailpit-1  Creating
+ Container knowledge-base-mailpit-1  Created
+ Container knowledge-base-redis-1  Created
+ Container knowledge-base-db-1  Created
+ Container knowledge-base-migrate-1  Creating
+ Container knowledge-base-migrate-1  Created
+ Container knowledge-base-app-1  Creating
+ Container knowledge-base-app-1  Created
+ Container knowledge-base-proxy-1  Creating
+ Container knowledge-base-proxy-1  Created
+ Container knowledge-base-redis-1  Starting
+ Container knowledge-base-mailpit-1  Starting
+ Container knowledge-base-db-1  Starting
+ Container knowledge-base-db-1  Started
+ Container knowledge-base-db-1  Waiting
+ Container knowledge-base-redis-1  Started
+ Container knowledge-base-mailpit-1  Started
+ Container knowledge-base-db-1  Healthy
+ Container knowledge-base-migrate-1  Starting
+ Container knowledge-base-migrate-1  Started
+ Container knowledge-base-redis-1  Waiting
+ Container knowledge-base-migrate-1  Waiting
+ Container knowledge-base-redis-1  Healthy
+ Container knowledge-base-migrate-1  Exited
+ Container knowledge-base-app-1  Starting
+ Container knowledge-base-app-1  Started
+ Container knowledge-base-app-1  Waiting
+ Container knowledge-base-app-1  Healthy
+ Container knowledge-base-proxy-1  Starting
+ Container knowledge-base-proxy-1  Started
+ Container knowledge-base-mailpit-1  Waiting
+ Container knowledge-base-db-1  Waiting
+ Container knowledge-base-redis-1  Waiting
+ Container knowledge-base-migrate-1  Waiting
+ Container knowledge-base-app-1  Waiting
+ Container knowledge-base-proxy-1  Waiting
+ Container knowledge-base-db-1  Healthy
+ Container knowledge-base-redis-1  Healthy
+ Container knowledge-base-proxy-1  Healthy
+ Container knowledge-base-migrate-1  Exited
+ Container knowledge-base-mailpit-1  Healthy
+ Container knowledge-base-app-1  Healthy
+[exit 0]
+
+$ docker compose ps -a
+SERVICE   IMAGE                   STATE     STATUS
+app       knowledge-base:0.2.0    running   Up 6 seconds (healthy)
+db        postgres:18             running   Up 13 seconds (healthy)
+mailpit   axllent/mailpit:v1.27   running   Up 13 seconds (healthy)
+migrate   knowledge-base:0.2.0    exited    Exited (0) 6 seconds ago
+proxy     nginx:1.29-alpine       running   Up Less than a second
+redis     redis:8                 running   Up 13 seconds (healthy)
+
+$ docker compose logs migrate
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001, Документы и история их версий
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Полнотекстовый поиск PostgreSQL: вычисляемый столбец и индекс GIN
+INFO  [alembic.runtime.migration] Running upgrade 0002 -> 0003, Полнотекстовый поиск по всем полям: заголовки, теги и код
+INFO  [alembic.runtime.migration] Running upgrade 0003 -> 0004, Пользователи, разовые токены, владельцы документов и доступ по приглашению
+
+$ docker compose logs app
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2026-11-03 03:26:37,511 INFO    kb.service [-] Индексы построены: документов 0 за 0.02 с
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-11-03 03:26:41,752 INFO    kb.api.app [5cd61bf74564] GET /api/v1/health -> 200, 9.5 мс

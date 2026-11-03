@@ -100,12 +100,12 @@ curl -H "Authorization: Bearer $TOKEN" \
 ```python
 from kb.scoring import Scorer, register_scorer
 
+
 @register_scorer
 class MyScorer(Scorer):
     name = "my-method"
 
-    def score(self, query_terms, index):
-        ...
+    def score(self, query_terms, index): ...
 ```
 
 После этого метод доступен в параметре `scorer`. Гибридный метод может включить его через

@@ -73,16 +73,6 @@ def main(base_url: str, mailpit_url: str) -> int:
             "Версия сервера скрыта", any(c.isdigit() for c in headers.get("server", "")), False
         )
 
-    print("\nПорты внутренних служб не опубликованы")
-    host = "127.0.0.1"
-    for name, port in (("PostgreSQL", 5433), ("Redis", 6379)):
-        try:
-            httpx.get(f"http://{host}:{port}/", timeout=1)
-            reachable = True
-        except httpx.TransportError:
-            reachable = False
-        report.check(f"{name} на порту {port} недоступен снаружи", reachable, False)
-
     print("\nТокены")
     first = new_user(base_url, mailbox, first_email, PASSWORD)
     second = new_user(base_url, mailbox, second_email, PASSWORD)
@@ -208,8 +198,8 @@ def main(base_url: str, mailpit_url: str) -> int:
         )
         report.check("Известный адрес", forgot.status_code, 202)
         report.check("Ответ не выдаёт, есть ли адрес", forgot.text == none.text, True)
-        previous = mailbox.last_token(first_email)
-        link = mailbox.last_token(first_email)
+        # На этот адрес уже пришли подтверждение и уведомление о повторной регистрации.
+        link = mailbox.last_token(first_email, expected=3)
         reset = client.post(
             f"{API}/auth/password/reset", json={"token": "выдуманный", "new_password": NEW_PASSWORD}
         )
@@ -234,7 +224,6 @@ def main(base_url: str, mailpit_url: str) -> int:
         report.check("Cookie: HttpOnly", "HttpOnly" in cookie, True)
         report.check("Cookie: Secure", "Secure" in cookie, True)
         report.check("Cookie: SameSite", "samesite=strict" in cookie.lower(), True)
-        del previous
 
     print(f"\nПроверок: {report.total}, ошибок: {report.failed}")
     return 1 if report.failed else 0

@@ -1,0 +1,260 @@
+{
+ "docs": 2000,
+ "size_mb": 15.5,
+ "upload_seconds": 17.6,
+ "idle": [
+  {
+   "name": "knowledge-base-proxy-1",
+   "cpu": 0.0,
+   "memory_mb": 13.46
+  },
+  {
+   "name": "knowledge-base-app-1",
+   "cpu": 0.1,
+   "memory_mb": 84.94
+  },
+  {
+   "name": "knowledge-base-db-1",
+   "cpu": 4.04,
+   "memory_mb": 39.08
+  },
+  {
+   "name": "knowledge-base-redis-1",
+   "cpu": 2.26,
+   "memory_mb": 6.066
+  },
+  {
+   "name": "knowledge-base-mailpit-1",
+   "cpu": 0.0,
+   "memory_mb": 10.29
+  }
+ ],
+ "upload_stats": {
+  "knowledge-base-proxy-1": {
+   "cpu_mean": 0.5,
+   "cpu_max": 1.6,
+   "memory_max_mb": 14.2
+  },
+  "knowledge-base-app-1": {
+   "cpu_mean": 66.3,
+   "cpu_max": 71.7,
+   "memory_max_mb": 256.6
+  },
+  "knowledge-base-db-1": {
+   "cpu_mean": 22.8,
+   "cpu_max": 28.5,
+   "memory_max_mb": 75.1
+  },
+  "knowledge-base-redis-1": {
+   "cpu_mean": 1.2,
+   "cpu_max": 3.1,
+   "memory_max_mb": 6.0
+  },
+  "knowledge-base-mailpit-1": {
+   "cpu_mean": 0.0,
+   "cpu_max": 0.0,
+   "memory_max_mb": 10.5
+  }
+ },
+ "results": {
+  "bm25, новые запросы (минуя кэш)": [
+   {
+    "clients": 1,
+    "requests": 1257,
+    "rps": 62.9,
+    "p50_ms": 15.4,
+    "p95_ms": 19.9
+   },
+   {
+    "clients": 2,
+    "requests": 2124,
+    "rps": 106.2,
+    "p50_ms": 18.7,
+    "p95_ms": 24.3
+   },
+   {
+    "clients": 4,
+    "requests": 2009,
+    "rps": 100.5,
+    "p50_ms": 40.4,
+    "p95_ms": 48.8
+   },
+   {
+    "clients": 8,
+    "requests": 1990,
+    "rps": 99.3,
+    "p50_ms": 81.0,
+    "p95_ms": 98.8
+   },
+   {
+    "clients": 16,
+    "requests": 1884,
+    "rps": 93.8,
+    "p50_ms": 171.7,
+    "p95_ms": 211.5
+   }
+  ],
+  "pgfts, новые запросы (минуя кэш)": [
+   {
+    "clients": 1,
+    "requests": 624,
+    "rps": 31.2,
+    "p50_ms": 31.0,
+    "p95_ms": 41.4
+   },
+   {
+    "clients": 2,
+    "requests": 1395,
+    "rps": 69.4,
+    "p50_ms": 33.8,
+    "p95_ms": 51.9
+   },
+   {
+    "clients": 4,
+    "requests": 1937,
+    "rps": 96.8,
+    "p50_ms": 40.5,
+    "p95_ms": 77.1
+   },
+   {
+    "clients": 8,
+    "requests": 1876,
+    "rps": 93.5,
+    "p50_ms": 85.3,
+    "p95_ms": 135.5
+   },
+   {
+    "clients": 16,
+    "requests": 1726,
+    "rps": 85.7,
+    "p50_ms": 185.6,
+    "p95_ms": 267.1
+   }
+  ],
+  "bm25, повторные запросы (из кэша)": [
+   {
+    "clients": 1,
+    "requests": 3675,
+    "rps": 183.8,
+    "p50_ms": 5.2,
+    "p95_ms": 6.7
+   },
+   {
+    "clients": 2,
+    "requests": 4301,
+    "rps": 215.0,
+    "p50_ms": 9.2,
+    "p95_ms": 10.7
+   },
+   {
+    "clients": 4,
+    "requests": 4227,
+    "rps": 211.3,
+    "p50_ms": 18.8,
+    "p95_ms": 22.6
+   },
+   {
+    "clients": 8,
+    "requests": 4232,
+    "rps": 211.4,
+    "p50_ms": 37.6,
+    "p95_ms": 44.8
+   },
+   {
+    "clients": 16,
+    "requests": 4152,
+    "rps": 207.2,
+    "p50_ms": 77.1,
+    "p95_ms": 90.2
+   }
+  ]
+ },
+ "load_stats": {
+  "bm25, новые запросы (минуя кэш)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 4.1,
+    "cpu_max": 6.3,
+    "memory_max_mb": 19.6
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 105.2,
+    "cpu_max": 130.4,
+    "memory_max_mb": 274.4
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 5.4,
+    "cpu_max": 18.3,
+    "memory_max_mb": 84.4
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 2.2,
+    "cpu_max": 4.4,
+    "memory_max_mb": 41.8
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.1,
+    "cpu_max": 2.4,
+    "memory_max_mb": 10.4
+   }
+  },
+  "pgfts, новые запросы (минуя кэш)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 3.3,
+    "cpu_max": 5.5,
+    "memory_max_mb": 19.4
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 96.5,
+    "cpu_max": 139.3,
+    "memory_max_mb": 281.3
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 54.8,
+    "cpu_max": 76.1,
+    "memory_max_mb": 98.0
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 1.8,
+    "cpu_max": 4.0,
+    "memory_max_mb": 65.9
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.3,
+    "cpu_max": 3.0,
+    "memory_max_mb": 14.4
+   }
+  },
+  "bm25, повторные запросы (из кэша)": {
+   "knowledge-base-proxy-1": {
+    "cpu_mean": 7.9,
+    "cpu_max": 8.8,
+    "memory_max_mb": 21.1
+   },
+   "knowledge-base-app-1": {
+    "cpu_mean": 105.4,
+    "cpu_max": 155.0,
+    "memory_max_mb": 294.5
+   },
+   "knowledge-base-db-1": {
+    "cpu_mean": 10.6,
+    "cpu_max": 33.9,
+    "memory_max_mb": 85.0
+   },
+   "knowledge-base-redis-1": {
+    "cpu_mean": 2.9,
+    "cpu_max": 4.9,
+    "memory_max_mb": 66.2
+   },
+   "knowledge-base-mailpit-1": {
+    "cpu_mean": 0.1,
+    "cpu_max": 2.8,
+    "memory_max_mb": 10.5
+   }
+  }
+ },
+ "write": {
+  "rounds": 100,
+  "p50_ms": 55.4,
+  "p95_ms": 57.6
+ }
+}

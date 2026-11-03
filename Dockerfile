@@ -9,12 +9,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 FROM base AS build
 WORKDIR /build
 RUN python -m venv /opt/kb
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md constraints.txt ./
 COPY src ./src
-RUN /opt/kb/bin/pip install .
+# Версии зависимостей закреплены: образ собирается одинаково и завтра, и через год.
+RUN /opt/kb/bin/pip install -c constraints.txt .
 
 FROM build AS test
-RUN /opt/kb/bin/pip install ".[test]"
+RUN /opt/kb/bin/pip install -c constraints.txt ".[test]"
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY samples ./samples

@@ -1,0 +1,3 @@
+$ docker run --network knowledge-base_frontend ... python tools/bench_load.py https://proxy http://mailpit:8025 --write-only
+Сохранение новой версии: p50 10.3 мс, p95 12.3 мс
+[exit 0]

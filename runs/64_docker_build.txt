@@ -1,0 +1,53 @@
+$ docker compose --profile demo build --no-cache
+#1 [internal] load local bake definitions
+#1 DONE 0.0s
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+#3 [internal] load metadata for docker.io/library/python:3.13-slim
+#3 DONE 0.0s
+#4 [internal] load .dockerignore
+#4 DONE 0.0s
+#5 [build 1/5] WORKDIR /build
+#6 [base 1/1] FROM docker.io/library/python:3.13-slim@sha256:ae14d4ce8771606477a81446e7ef429edd6762305fc50c84507c1041fa8285d1
+#7 [runtime 1/5] RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin kb
+#8 [internal] load build context
+#8 DONE 0.2s
+#7 [runtime 1/5] RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin kb
+#7 DONE 0.3s
+#9 [build 2/5] RUN python -m venv /opt/kb
+#9 DONE 2.6s
+#10 [build 3/5] COPY pyproject.toml README.md constraints.txt ./
+#10 DONE 0.0s
+#11 [build 4/5] COPY src ./src
+#11 DONE 0.0s
+#12 [build 5/5] RUN /opt/kb/bin/pip install -c constraints.txt .
+#12 16.55 Successfully installed Mako-1.4.3 MarkupSafe-3.0.4 PyJWT-2.15.1 PyYAML-6.0.3 alembic-1.20.1 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.16.0 argon2-cffi-2
+#12 DONE 17.0s
+#13 [runtime 2/5] COPY --from=build /opt/kb /opt/kb
+#13 DONE 0.7s
+#14 [runtime 3/5] WORKDIR /app
+#14 DONE 0.0s
+#15 [runtime 4/5] COPY alembic.ini ./
+#15 DONE 0.0s
+#16 [runtime 5/5] COPY migrations ./migrations
+#16 DONE 0.0s
+#17 naming to docker.io/library/knowledge-base:0.2.0 done
+#17 DONE 3.2s
+#18 DONE 0.0s
+ knowledge-base:0.2.0  Built
+[exit 0]
+
+$ docker build --target test -t knowledge-base-test .
+[exit 0]
+
+$ docker images
+REPOSITORY:TAG               SIZE
+knowledge-base-test:latest   343MB
+knowledge-base:0.2.0         313MB
+python:3.13-slim             178MB
+redis:8                      213MB
+postgres:18                  650MB
+nginx:1.29-alpine            93.5MB
+axllent/mailpit:v1.27        50.6MB

@@ -1,9 +1,11 @@
 """Проверка веб-интерфейса в настоящем браузере: python tools/ui_smoke.py [--shots docs/img].
 
-Запускает приложение на настоящих PostgreSQL и Redis, открывает Microsoft Edge без окна и проходит
-путь пользователя: регистрация, подтверждение, вход, импорт, поиск, правка, версии, совместный
-доступ, статистика, смена и восстановление пароля. Письма перехватываются в памяти процесса.
-База KB_UI_DATABASE_URL при запуске очищается.
+Открывает Microsoft Edge без окна и проходит путь пользователя: регистрация, подтверждение, вход,
+импорт, поиск, правка, версии, совместный доступ, статистика, смена и восстановление пароля.
+
+С параметрами --base и --mailpit работает с развёрнутым сервисом и читает письма из Mailpit.
+Без них запускает приложение в этом же процессе на настоящих PostgreSQL и Redis, а письма
+перехватывает в памяти. База KB_UI_DATABASE_URL при этом очищается.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ import re
 import socket
 import threading
 import time
+import uuid
 from pathlib import Path
 
 import redis
@@ -22,6 +25,7 @@ from alembic import command
 from alembic.config import Config
 from playwright.sync_api import Page, expect, sync_playwright
 from sqlalchemy import create_engine, text
+from stack_client import Mailbox
 
 from kb.api.app import create_app
 from kb.config import Settings
@@ -31,8 +35,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 PASSWORD = "надёжная-фраза-для-проверки"
 NEW_PASSWORD = "другая-надёжная-фраза-2026"
-FIRST = "first.user@example.org"
-SECOND = "second.user@example.org"
+TAG = uuid.uuid4().hex[:6]
+FIRST = f"anna.{TAG}@example.org"
+SECOND = f"boris.{TAG}@example.org"
 XSS_NOTE = """---
 title: Проверка экранирования
 ---
@@ -55,7 +60,7 @@ class CapturingMailer(Mailer):
     def send(self, mail: OutgoingMail) -> None:
         self.sent.append(mail)
 
-    def last_link(self, to: str) -> str:
+    def last_link(self, to: str, expected: int = 1) -> str:
         for mail in reversed(self.sent):
             match = re.search(r"https?://\S+", mail.body)
             if mail.to == to and match:
@@ -96,7 +101,7 @@ class Steps:
 
 
 def register(
-    page: Page, base: str, mailer: CapturingMailer, email: str, steps: Steps | None
+    page: Page, base: str, mailer: CapturingMailer | Mailbox, email: str, steps: Steps | None
 ) -> None:
     page.goto(f"{base}/#/register")
     page.fill("input[name=email]", email)
@@ -126,7 +131,7 @@ def login(page: Page, base: str, email: str, password: str = PASSWORD) -> None:
     expect(page.locator("h1")).to_have_text("Поиск")
 
 
-def scenario(page: Page, base: str, mailer: CapturingMailer, shots: Path) -> int:
+def scenario(page: Page, base: str, mailer: CapturingMailer | Mailbox, shots: Path) -> int:
     steps = Steps(page, shots)
     problems: list[str] = []
     page.on("pageerror", lambda error: problems.append(str(error)))
@@ -225,7 +230,9 @@ def scenario(page: Page, base: str, mailer: CapturingMailer, shots: Path) -> int
     expect(page.locator("#personal-data")).to_contain_text(FIRST)
     steps.done("Показаны хранимые данные", "account")
 
-    context = page.context.browser.new_context(viewport=page.viewport_size, locale="ru-RU")
+    context = page.context.browser.new_context(
+        viewport=page.viewport_size, locale="ru-RU", ignore_https_errors=True
+    )
     second = context.new_page()
     second.on("pageerror", lambda error: problems.append(str(error)))
     register(second, base, mailer, SECOND, None)
@@ -253,6 +260,7 @@ def scenario(page: Page, base: str, mailer: CapturingMailer, shots: Path) -> int
     second.goto(f"{base}/{doc_url[doc_url.index('#') :]}")
     expect(second.locator("#doc-title")).to_have_text("Заметка о кэше")
     expect(second.locator("button[data-tab=edit]")).to_have_count(0)
+    expect(second.locator("#tab-content")).to_contain_text("ускоряет")
     steps.done("Приглашённый видит документ, но не может править")
     second.screenshot(path=shots / "ui_shared_document.png", full_page=True)
     context.close()
@@ -271,7 +279,8 @@ def scenario(page: Page, base: str, mailer: CapturingMailer, shots: Path) -> int
     page.click("button[type=submit]")
     expect(page.locator("#message")).to_contain_text("отправлено письмо")
     steps.done("Запрошено восстановление пароля", "forgot")
-    link = mailer.last_link(FIRST)
+    # На этот адрес уже приходило письмо с подтверждением.
+    link = mailer.last_link(FIRST, expected=2)
     page.goto(link)
     page.fill("input[name=new-password]", PASSWORD)
     page.click("button[type=submit]")
@@ -306,7 +315,13 @@ def scenario(page: Page, base: str, mailer: CapturingMailer, shots: Path) -> int
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--shots", type=Path, default=ROOT / "docs" / "img")
+    parser.add_argument("--base", help="адрес развёрнутого сервиса")
+    parser.add_argument("--mailpit", help="адрес Mailpit развёрнутого сервиса")
     args = parser.parse_args()
+    args.shots.mkdir(parents=True, exist_ok=True)
+
+    if args.base:
+        return in_browser(args.base, Mailbox(args.mailpit), args.shots)
 
     database_url = os.environ["KB_UI_DATABASE_URL"]
     prepare_database(database_url)
@@ -336,20 +351,26 @@ def main() -> int:
     while not server.started:
         time.sleep(0.05)
 
-    args.shots.mkdir(parents=True, exist_ok=True)
     try:
-        with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(channel="msedge", headless=True)
-            context = browser.new_context(viewport={"width": 1280, "height": 800}, locale="ru-RU")
-            page = context.new_page()
-            page.set_default_timeout(10_000)
-            try:
-                return scenario(page, base, mailer, args.shots)
-            finally:
-                browser.close()
+        return in_browser(base, mailer, args.shots)
     finally:
         server.should_exit = True
         thread.join(timeout=10)
+
+
+def in_browser(base: str, mailer: CapturingMailer | Mailbox, shots: Path) -> int:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(channel="msedge", headless=True)
+        # Сертификат развёрнутого сервиса самоподписанный.
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 800}, locale="ru-RU", ignore_https_errors=True
+        )
+        page = context.new_page()
+        page.set_default_timeout(10_000)
+        try:
+            return scenario(page, base, mailer, shots)
+        finally:
+            browser.close()
 
 
 if __name__ == "__main__":
