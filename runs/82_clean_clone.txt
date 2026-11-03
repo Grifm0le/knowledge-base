@@ -1,0 +1,47 @@
+$ git clone https://github.com/Grifm0le/knowledge-base && cd knowledge-base
+$ sh tools/init_env.sh && sh tools/make_cert.sh
+$ docker compose -p kbclone --profile demo up -d --build --wait
+коммит e683583, файлов 239
+SERVICE   IMAGE                   STATUS
+app       knowledge-base:0.2.0    Up 31 seconds (healthy)
+db        postgres:18             Up 43 seconds (healthy)
+mailpit   axllent/mailpit:v1.27   Up 43 seconds (healthy)
+migrate   knowledge-base:0.2.0    Exited (0) 32 seconds ago
+proxy     nginx:1.29-alpine       Up 26 seconds
+redis     redis:8                 Up 43 seconds (healthy)
+
+$ curl -k https://127.0.0.1:8443/api/v1/health
+{"status":"ok","database":"ok","cache":"ok"}
+
+$ python tools/api_smoke.py https://127.0.0.1:8443 http://127.0.0.1:8025
+Пользователь зарегистрирован и вошёл по письму: smoke-c1080b15@example.org
+Состояние                          200 кэш=-       <время>  {'status': 'ok', 'database': 'ok', 'cache': 'ok'}
+Импорт samples                     200 кэш=-      <время>  {'created': 8, 'updated': 0, 'unchanged': 0, 'failed': 0}
+Повторный импорт samples           200 кэш=-      <время>  {'created': 0, 'updated': 0, 'unchanged': 8, 'failed': 0}
+Поиск BM25, первый раз             200 кэш=MISS    <время>  найдено 5, первый: Индексы в PostgreSQL
+Поиск BM25, второй раз             200 кэш=HIT     <время>  найдено 5, первый: Индексы в PostgreSQL
+Поиск TF-IDF                       200 кэш=MISS    <время>  найдено 5, первый: Индексы в PostgreSQL
+Поиск гибридный                    200 кэш=MISS    <время>  найдено 5, первый: Индексы в PostgreSQL
+Поиск PostgreSQL FTS               200 кэш=MISS    <время>  найдено 5, первый: Индексы в PostgreSQL
+Поиск с фильтром по тегу           200 кэш=MISS    <время>  найдено 1, первый: Кэширование в Redis
+Веса по умолчанию                  200 кэш=HIT     <время>  Индексы в PostgreSQL, Кэширование в Redis, Как работает BM25
+Вес кода 50                        200 кэш=MISS    <время>  Индексы в PostgreSQL, Тестирование на pytest, Кэширование в Redis
+Вес текста 0                       200 кэш=MISS     <время>  Индексы в PostgreSQL, Как работает BM25, Тестирование на pytest
+Гибрид, только TF-IDF              200 кэш=MISS    <время>  Индексы в PostgreSQL, Идеи для базы знаний, Как работает BM25
+Создание документа                 201 кэш=-       <время>  версия 1
+Поиск новой заметки                200 кэш=MISS    <время>  первый: Проверочная заметка
+Тот же поиск из кэша               200 кэш=HIT      <время>  первый: Проверочная заметка
+Новая версия                       200 кэш=-       <время>  версия 2
+Устаревшая версия                  409 кэш=-       <время>  version_conflict
+Поиск после правки (кэш сброшен)   200 кэш=MISS     <время>  первый: Проверочная заметка
+История версий                     200 кэш=-       <время>  [2, 1]
+Различия версий                    200 кэш=-       <время>  ['-Сервис сохраняет каждую правку как отдельную версию.', '+Сервис надёжно сохраняет каждую правку как отдельную версию.']
+Возврат версии 1                   200 кэш=-       <время>  версия 3
+Плохой документ                    422 кэш=-       <время>  empty_document
+Неизвестный метод                  400 кэш=-        <время>  unknown_scorer
+Нет документа                      404 кэш=-        <время>  document_not_found
+Неверный идентификатор             422 кэш=-        <время>  invalid_request
+Удаление                           204 кэш=-       <время>  
+Поиск после удаления               200 кэш=MISS    <время>  найдено 2
+Статистика                         200 кэш=-       <время>  {'documents': 8, 'versions': 8, 'content_bytes': 9122, 'indexed_documents': 8, 'indexed_terms': 358, 'cache_hits': 6, 'cache_misses': 24, 'top_tags': [{'name': 'python', 'count': 2}, {'name': 'производительность', 'count': 2}, {'name': 'поиск', 'count': 1}, {'name': 'алгоритмы', 'count': 1}, {'name': 'ранжирование', 'count': 1}, {'name': 'docker', 'count': 1}, {'name': 'инфраструктура', 'count': 1}, {'name': 'api', 'count': 1}, {'name': 'backend', 'count': 1}, {'name': 'git', 'count': 1}], 'categories': [{'name': 'Базы данных', 'count': 2}, {'name': 'Алгоритмы', 'count': 1}, {'name': 'Инфраструктура', 'count': 1}, {'name': 'Development', 'count': 1}, {'name': 'Инструменты', 'count': 1}, {'name': 'Разработка', 'count': 1}]}
+[exit 0]
