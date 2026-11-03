@@ -1,0 +1,7 @@
+SERVICE   IMAGE                   STATUS
+app       knowledge-base:0.2.0    Up 2 minutes (healthy)
+db        postgres:18             Up 2 minutes (healthy)
+mailpit   axllent/mailpit:v1.27   Up 2 minutes (healthy)
+migrate   knowledge-base:0.2.0    Exited (0) 2 minutes ago
+proxy     nginx:1.29-alpine       Up 2 minutes
+redis     redis:8                 Up 2 minutes (healthy)
